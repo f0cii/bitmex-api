@@ -65,6 +65,21 @@ func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 	return
 }
 
+func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
+	var response *http.Response
+
+	client := rest.GetClient(b.ctx)
+	localVarOptionals := map[string]interface{}{}
+	localVarOptionals["filter"] = fmt.Sprintf(`{"symbol": "%s"}`, b.symbol)
+
+	positions, response, err = client.PositionApi.PositionGet(b.ctx, localVarOptionals)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 	var response *http.Response
 

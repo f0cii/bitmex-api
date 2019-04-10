@@ -1,11 +1,16 @@
 package bitmex
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"log"
+	"net/url"
 	"time"
 )
 
@@ -123,8 +128,59 @@ func (b *BitMEX) sendWSMessage(msg interface{}) error {
 	return nil
 }
 
+// sendAuth sends an authenticated subscription
+func (b *BitMEX) sendAuth() error {
+	if b.Key == "" || b.Secret == "" {
+		return nil
+	}
+	msg := b.getAuthMessage(b.Key, b.Secret)
+	log.Println("sendAuth")
+	return b.sendWSMessage(msg)
+}
+
+func (b *BitMEX) getAuthMessage(key string, secret string) WSCmd {
+	nonce := time.Now().Unix() + 412
+	req := fmt.Sprintf("GET/realtime%d", nonce)
+	sig := hmac.New(sha256.New, []byte(secret))
+	sig.Write([]byte(req))
+	signature := hex.EncodeToString(sig.Sum(nil))
+	var msgKey []interface{}
+	msgKey = append(msgKey, key)
+	msgKey = append(msgKey, nonce)
+	msgKey = append(msgKey, signature)
+
+	return WSCmd{"authKey", msgKey}
+}
+
+func (b *BitMEX) Subscribe(subscribeTypes []SubscribeInfo) error {
+	message := WSCmd{}
+	message.Command = "subscribe"
+	for _, v := range subscribeTypes {
+		message.Args = append(message.Args, v.Op+":"+v.Param) // "quote:XBTUSD"
+	}
+	b.subscribeCmd = &message
+	b.subscribeHandler()
+	return nil
+}
+
+func (b *BitMEX) subscribeHandler() error {
+	if b.subscribeCmd == nil {
+		return nil
+	}
+	err := b.sendAuth()
+	if err != nil {
+		return err
+	}
+	log.Printf("subscribe %v", *b.subscribeCmd)
+	return b.sendWSMessage(*b.subscribeCmd)
+}
+
 // StartWS opens the websocket connection, and waits for message events
 func (b *BitMEX) StartWS() {
+	u := url.URL{Scheme: "wss", Host: b.host, Path: "/realtime"}
+	bitmexWSURL := u.String()
+	b.ws.Dial(bitmexWSURL, nil)
+
 	go func() {
 		for {
 			_, message, err := b.ws.ReadMessage()

@@ -80,7 +80,7 @@ func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 	return
 }
 
-func (b *BitMEX) NewOrder(price float64, side string, ordType string, orderQty int32, postOnly bool) (order swagger.Order, err error) {
+func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty int32, postOnly bool) (order swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}

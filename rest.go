@@ -7,6 +7,8 @@ import (
 	"github.com/go-resty/resty"
 	"github.com/vmpartner/bitmex/rest"
 	"github.com/vmpartner/bitmex/swagger"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -61,7 +63,7 @@ func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 	if err != nil {
 		return
 	}
-	b.onResponse(response)
+	b.onResponsePublic(response)
 	return
 }
 
@@ -70,7 +72,7 @@ func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
 
 	client := rest.GetClient(b.ctx)
 	localVarOptionals := map[string]interface{}{}
-	localVarOptionals["filter"] = fmt.Sprintf(`{"symbol": "%s"}`, b.symbol)
+	localVarOptionals["filter"] = fmt.Sprintf(`{"symbol":"%s"}`, b.symbol)
 
 	positions, response, err = client.PositionApi.PositionGet(b.ctx, localVarOptionals)
 	if err != nil {
@@ -92,6 +94,8 @@ func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 		return
 	}
 	b.onResponse(response)
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Printf("%v", string(body))
 	return
 }
 
@@ -215,6 +219,29 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 	}
 	b.onResponse(response)
 	return
+}
+
+func (b *BitMEX) onResponsePublic(response *http.Response) {
+	//log.Printf("X-Ratelimit-Limit: %v", response.Header[`X-Ratelimit-Limit`])
+	//log.Printf("X-Ratelimit-Remaining: %v", response.Header[`X-Ratelimit-Remaining`])
+	//log.Printf("X-Ratelimit-Reset: %v", response.Header[`X-Ratelimit-Reset`])
+
+	xLimit := response.Header.Get(`X-Ratelimit-Limit`)
+	xRemaining := response.Header.Get(`X-Ratelimit-Remaining`)
+	xReset := response.Header.Get(`X-Ratelimit-Reset`)
+
+	b.rateLimitMutexPublic.Lock()
+	defer b.rateLimitMutexPublic.Unlock()
+
+	if xLimit != "" {
+		b.rateLimitPublic.Limit, _ = strconv.ParseInt(xLimit, 10, 64)
+	}
+	if xRemaining != "" {
+		b.rateLimitPublic.Remaining, _ = strconv.ParseInt(xRemaining, 10, 64)
+	}
+	if xReset != "" {
+		b.rateLimitPublic.Reset, _ = strconv.ParseInt(xReset, 10, 64)
+	}
 }
 
 func (b *BitMEX) onResponse(response *http.Response) {

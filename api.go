@@ -26,9 +26,11 @@ type BitMEX struct {
 	symbol string
 	host   string
 
-	ctx            context.Context
-	rateLimitMutex sync.RWMutex
-	rateLimit      RateLimit
+	ctx                  context.Context
+	rateLimitMutexPublic sync.RWMutex
+	rateLimitMutex       sync.RWMutex
+	rateLimitPublic      RateLimit
+	rateLimit            RateLimit
 
 	ws             recws.RecConn
 	emitter        *emission.Emitter
@@ -58,4 +60,10 @@ func (b *BitMEX) GetRateLimit() RateLimit {
 	b.rateLimitMutex.RLock()
 	defer b.rateLimitMutex.RUnlock()
 	return b.rateLimit
+}
+
+func (b *BitMEX) GetRateLimitPublic() RateLimit {
+	b.rateLimitMutexPublic.RLock()
+	defer b.rateLimitMutexPublic.RUnlock()
+	return b.rateLimitPublic
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/chuckpreslar/emission"
 	"github.com/mariuspass/recws"
-	"github.com/vmpartner/bitmex/rest"
+	"github.com/sumorf/bitmex-api/swagger"
 	"sync"
 )
 
@@ -27,6 +27,7 @@ type BitMEX struct {
 	host   string
 
 	ctx                  context.Context
+	client               *swagger.APIClient
 	rateLimitMutexPublic sync.RWMutex
 	rateLimitMutex       sync.RWMutex
 	rateLimitPublic      RateLimit
@@ -52,7 +53,8 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 		SubscribeHandler: b.subscribeHandler,
 	}
 	b.host = host
-	b.ctx = rest.MakeContext(key, secret, host, 10)
+	b.ctx = MakeContext(key, secret, host, 10)
+	b.client = GetClient(b.ctx)
 	return b
 }
 
@@ -66,4 +68,25 @@ func (b *BitMEX) GetRateLimitPublic() RateLimit {
 	b.rateLimitMutexPublic.RLock()
 	defer b.rateLimitMutexPublic.RUnlock()
 	return b.rateLimitPublic
+}
+
+func MakeContext(key string, secret string, host string, timeout int64) context.Context {
+	return context.WithValue(context.TODO(), swagger.ContextAPIKey, swagger.APIKey{
+		Key:     key,
+		Secret:  secret,
+		Host:    host,
+		Timeout: timeout,
+	})
+}
+
+func GetClient(ctx context.Context) *swagger.APIClient {
+	c := ctx.Value(swagger.ContextAPIKey).(swagger.APIKey)
+	cfg := &swagger.Configuration{
+		BasePath:      "https://" + c.Host + "/api/v1",
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Swagger-Codegen/1.0.0/go",
+		ExpireTime:    5, //seconds
+	}
+
+	return swagger.NewAPIClient(cfg)
 }

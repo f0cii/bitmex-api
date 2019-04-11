@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty"
-	"github.com/vmpartner/bitmex/rest"
-	"github.com/vmpartner/bitmex/swagger"
+	"github.com/sumorf/bitmex-api/swagger"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -44,7 +43,10 @@ func (b *BitMEX) GetVersion() (version Version, time time.Duration, err error) {
 func (b *BitMEX) GetWallet() (wallet swagger.Wallet, err error) {
 	var response *http.Response
 
-	wallet, response, err = rest.GetWallet(b.ctx)
+	params := map[string]interface{}{
+		"currency": "",
+	}
+	wallet, response, err = b.client.UserApi.UserGetWallet(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -55,11 +57,10 @@ func (b *BitMEX) GetWallet() (wallet swagger.Wallet, err error) {
 func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err error) {
 	var response *http.Response
 
-	client := rest.GetClient(b.ctx)
-	localVarOptionals := map[string]interface{}{}
-	localVarOptionals["depth"] = float32(depth)
+	params := map[string]interface{}{}
+	params["depth"] = float32(depth)
 
-	orderbook, response, err = client.OrderBookApi.OrderBookGetL2(b.symbol, localVarOptionals)
+	orderbook, response, err = b.client.OrderBookApi.OrderBookGetL2(b.symbol, params)
 	if err != nil {
 		return
 	}
@@ -70,11 +71,10 @@ func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
 	var response *http.Response
 
-	client := rest.GetClient(b.ctx)
-	localVarOptionals := map[string]interface{}{}
-	localVarOptionals["filter"] = fmt.Sprintf(`{"symbol":"%s"}`, b.symbol)
+	params := map[string]interface{}{}
+	params["filter"] = fmt.Sprintf(`{"symbol":"%s"}`, b.symbol)
 
-	positions, response, err = client.PositionApi.PositionGet(b.ctx, localVarOptionals)
+	positions, response, err = b.client.PositionApi.PositionGet(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -89,7 +89,7 @@ func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 	params["symbol"] = b.symbol
 	params["filter"] = `{"open":true}`
 
-	orders, response, err = rest.GetOrder(b.ctx, params)
+	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -122,7 +122,7 @@ func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty i
 		params["execInst"] = "ParticipateDoNotInitiate"
 	}
 
-	order, response, err = rest.NewOrder(b.ctx, params)
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, b.symbol, params)
 	if err != nil {
 		// >= 300 代表有错误
 		// 400 Bad Request
@@ -142,7 +142,7 @@ func (b *BitMEX) GetOrder(oid string) (order swagger.Order, err error) {
 	params["symbol"] = b.symbol
 	params["filter"] = fmt.Sprintf(`{"orderID":"%s"}`, oid)
 
-	orders, response, err = rest.GetOrder(b.ctx, params)
+	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -162,7 +162,22 @@ func (b *BitMEX) AmendOrder(oid string, price float64) (order swagger.Order, err
 	params["orderID"] = oid
 	params["price"] = price
 
-	order, response, err = rest.AmendOrder(b.ctx, params)
+	order, response, err = b.client.OrderApi.OrderAmend(b.ctx, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
+func (b *BitMEX) CancelAllOrders() (orders []swagger.Order, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	params["symbol"] = b.symbol
+	params["text"] = "cancel order with bitmex api"
+
+	orders, response, err = b.client.OrderApi.OrderCancelAll(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -175,10 +190,10 @@ func (b *BitMEX) CancelOrder(oid string) (order swagger.Order, err error) {
 	var orders []swagger.Order
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
 	params["orderID"] = oid
+	params["text"] = "cancel order with bitmex api"
 
-	orders, response, err = rest.CancelOrder(b.ctx, params)
+	orders, response, err = b.client.OrderApi.OrderCancel(b.ctx, params)
 	if err != nil {
 		return
 	}
@@ -213,7 +228,7 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 		execInst += ",ParticipateDoNotInitiate"
 	}
 	params["execInst"] = execInst
-	order, response, err = rest.NewOrder(b.ctx, params)
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, b.symbol, params)
 	if err != nil {
 		return
 	}
@@ -245,10 +260,6 @@ func (b *BitMEX) onResponsePublic(response *http.Response) {
 }
 
 func (b *BitMEX) onResponse(response *http.Response) {
-	//log.Printf("X-Ratelimit-Limit: %v", response.Header[`X-Ratelimit-Limit`])
-	//log.Printf("X-Ratelimit-Remaining: %v", response.Header[`X-Ratelimit-Remaining`])
-	//log.Printf("X-Ratelimit-Reset: %v", response.Header[`X-Ratelimit-Reset`])
-
 	xLimit := response.Header.Get(`X-Ratelimit-Limit`)
 	xRemaining := response.Header.Get(`X-Ratelimit-Remaining`)
 	xReset := response.Header.Get(`X-Ratelimit-Reset`)

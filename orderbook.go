@@ -43,6 +43,10 @@ type OrderBook struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+func (ob *OrderBook) Valid() bool {
+	return len(ob.Bids) > 0 && len(ob.Asks) > 0
+}
+
 func (ob *OrderBook) Bid() float64 {
 	if len(ob.Bids) < 1 {
 		return 0.0

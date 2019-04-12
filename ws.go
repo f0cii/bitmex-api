@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+	"github.com/sumorf/bitmex-api/swagger"
 	"github.com/tidwall/gjson"
 	"log"
 	"net/url"
@@ -94,21 +95,26 @@ func decodeMessage(message []byte) (Response, error) {
 			}
 			res.Data = orderbooks
 		case BitmexWSOrder:
-			var orders []*Order
+			var orders []*swagger.Order
 			err = json.Unmarshal([]byte(raw), &orders)
 			if err != nil {
 				return res, err
 			}
 			res.Data = orders
 		case BitmexWSPosition:
-			var wallets []*Wallet
+			var positions []*swagger.Position
+			err = json.Unmarshal([]byte(raw), &positions)
+			if err != nil {
+				return res, err
+			}
+			res.Data = positions
+		case BitmexWSWallet:
+			var wallets []*swagger.Wallet
 			err = json.Unmarshal([]byte(raw), &wallets)
 			if err != nil {
 				return res, err
 			}
 			res.Data = wallets
-		case BitmexWSWallet:
-			log.Printf("Wallet: %v", raw)
 		}
 	}
 	return res, err
@@ -241,36 +247,30 @@ func (b *BitMEX) processOrderbook(msg *Response, symbol string) (err error) {
 }
 
 func (b *BitMEX) processOrder(msg *Response, symbol string) (err error) {
-	orders, _ := msg.Data.([]*Order)
+	orders, _ := msg.Data.([]*swagger.Order)
 	if len(orders) < 1 {
 		return errors.New("ws.go error - no order data")
 	}
-
-	//log.Printf("processOrder Action=%v orders=%v", msg.Action, orders)
 
 	b.emitter.Emit(BitmexWSOrder, orders, msg.Action)
 	return nil
 }
 
 func (b *BitMEX) processPosition(msg *Response, symbol string) (err error) {
-	positions, _ := msg.Data.([]*Position)
+	positions, _ := msg.Data.([]*swagger.Position)
 	if len(positions) < 1 {
 		return errors.New("ws.go error - no position data")
 	}
-
-	//log.Printf("processPosition Action=%v positions=%v", msg.Action, positions)
 
 	b.emitter.Emit(BitmexWSPosition, positions, msg.Action)
 	return nil
 }
 
 func (b *BitMEX) processWallet(msg *Response, symbol string) (err error) {
-	wallets, _ := msg.Data.([]*Wallet)
+	wallets, _ := msg.Data.([]*swagger.Wallet)
 	if len(wallets) < 1 {
 		return errors.New("ws.go error - no wallet data")
 	}
-
-	//log.Printf("processWallet Action=%v wallets=%v", msg.Action, wallets)
 
 	b.emitter.Emit(BitmexWSWallet, wallets, msg.Action)
 	return nil

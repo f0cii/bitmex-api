@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/sumorf/bitmex-api"
+	"github.com/sumorf/bitmex-api/swagger"
 	"log"
 )
 
@@ -19,11 +20,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	orders := map[string]*bitmex.Order{}
+	orders := map[string]*swagger.Order{}
 
 	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBook) {
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", m.Asks[0], m.Bids[0])
-	}).On(bitmex.BitmexWSOrder, func(m []*bitmex.Order, action string) {
+	}).On(bitmex.BitmexWSOrder, func(m []*swagger.Order, action string) {
 		fmt.Printf("Order action=%v orders=%#v\n", action, m)
 
 		switch action {
@@ -68,7 +69,7 @@ func main() {
 		//for _, v := range m {
 		//	fmt.Printf("Order=%#v %v\n", *v, (*v).Timestamp.String())
 		//}
-	}).On(bitmex.BitmexWSPosition, func(m []*bitmex.Position, action string) {
+	}).On(bitmex.BitmexWSPosition, func(m []*swagger.Position, action string) {
 		fmt.Printf("Position action=%v positions=%#v\n", action, m)
 	})
 

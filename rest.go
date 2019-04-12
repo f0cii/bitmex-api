@@ -235,6 +235,7 @@ func (b *BitMEX) CancelOrder(oid string) (order swagger.Order, err error) {
 		err = errors.New("order error")
 		return
 	}
+	order = orders[0]
 	b.onResponse(response)
 	return
 }

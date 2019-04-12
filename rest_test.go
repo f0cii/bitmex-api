@@ -34,6 +34,15 @@ func TestBitMEX_GetOrderBookL2(t *testing.T) {
 	t.Logf("RateLimit: %v", rateLimit)
 }
 
+func TestBitMEX_GetOrderBook(t *testing.T) {
+	bitmex := newBitmexForTest()
+	orderBook, err := bitmex.GetOrderBook(5)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(orderBook)
+}
+
 func TestBitMEX_GetOrders(t *testing.T) {
 	bitmex := newBitmexForTest()
 	orders, err := bitmex.GetOrders()

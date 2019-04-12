@@ -43,6 +43,20 @@ type OrderBook struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+func (ob *OrderBook) Bid() float64 {
+	if len(ob.Bids) < 1 {
+		return 0.0
+	}
+	return ob.Bids[0].Price
+}
+
+func (ob *OrderBook) Ask() float64 {
+	if len(ob.Asks) < 1 {
+		return 0.0
+	}
+	return ob.Asks[0].Price
+}
+
 type OrderBookLocal struct {
 	ob map[string]*OrderBookL2
 	m  sync.Mutex

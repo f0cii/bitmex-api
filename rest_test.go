@@ -51,3 +51,82 @@ func TestBitMEX_GetPositions(t *testing.T) {
 	}
 	t.Log(positions)
 }
+
+func TestBitMEX_NewOrder(t *testing.T) {
+	bitmex := newBitmexForTest()
+	price := 3000.0
+	order, err := bitmex.NewOrder(SIDE_BUY, ORD_TYPE_LIMIT, price, 20, true)
+	if err != nil {
+		// 403 Forbidden
+		t.Error(err)
+		return
+	}
+	if order.Symbol != "XBTUSD" {
+		t.Errorf("symbol error [%v]", order.Symbol)
+		return
+	}
+	if order.Price != price {
+		t.Errorf("price error [%v]", order.Price)
+		return
+	}
+	t.Logf("%#v", order)
+}
+
+func TestBitMEX_CancelOrder(t *testing.T) {
+	bitmex := newBitmexForTest()
+	oid := `e4c72847-93f9-0304-d666-5f7d6ceb3ade`
+	order, err := bitmex.CancelOrder(oid)
+	if err != nil {
+		// 400 Bad Request
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", order)
+}
+
+func TestBitMEX_CancelAllOrders(t *testing.T) {
+	bitmex := newBitmexForTest()
+	orders, err := bitmex.CancelAllOrders()
+	if err != nil {
+		// 400 Bad Request
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", orders)
+}
+
+func TestBitMEX_AmendOrder(t *testing.T) {
+	bitmex := newBitmexForTest()
+	oid := `a17d25a3-6149-3edf-d196-75cc775beb29`
+	newPrice := 3001.0
+	order, err := bitmex.AmendOrder(oid, newPrice)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if order.Price != newPrice {
+		t.Error("price error")
+		return
+	}
+	t.Logf("%#v", order)
+}
+
+func TestBitMEX_CloseOrder(t *testing.T) {
+	bitmex := newBitmexForTest()
+	price := 6000.0
+	order, err := bitmex.CloseOrder(SIDE_SELL, ORD_TYPE_LIMIT, price, 20, true)
+	if err != nil {
+		// 403 Forbidden
+		t.Error(err)
+		return
+	}
+	if order.Symbol != "XBTUSD" {
+		t.Errorf("symbol error [%v]", order.Symbol)
+		return
+	}
+	if order.Price != price {
+		t.Errorf("price error [%v]", order.Price)
+		return
+	}
+	t.Logf("%#v", order)
+}

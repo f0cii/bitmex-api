@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -65,6 +66,39 @@ func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 		return
 	}
 	b.onResponsePublic(response)
+	return
+}
+
+func (b *BitMEX) GetOrderBook(depth int) (ob OrderBook, err error) {
+	var orderbook []swagger.OrderBookL2
+	orderbook, err = b.GetOrderBookL2(depth)
+	if err != nil {
+		return
+	}
+	for _, v := range orderbook {
+		switch v.Side {
+		case "Buy":
+			ob.Bids = append(ob.Bids, Item{
+				Price:  v.Price,
+				Amount: float64(v.Size),
+			})
+		case "Sell":
+			ob.Asks = append(ob.Asks, Item{
+				Price:  v.Price,
+				Amount: float64(v.Size),
+			})
+		}
+	}
+
+	sort.Slice(ob.Bids, func(i, j int) bool {
+		return ob.Bids[i].Price > ob.Bids[j].Price
+	})
+
+	sort.Slice(ob.Asks, func(i, j int) bool {
+		return ob.Asks[i].Price < ob.Asks[j].Price
+	})
+
+	ob.Timestamp = time.Now()
 	return
 }
 

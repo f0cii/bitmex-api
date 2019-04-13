@@ -55,7 +55,7 @@ func (b *BitMEX) GetWallet() (wallet swagger.Wallet, err error) {
 	return
 }
 
-func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err error) {
+func (b *BitMEX) getOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
@@ -71,7 +71,7 @@ func (b *BitMEX) GetOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 
 func (b *BitMEX) GetOrderBook(depth int) (ob OrderBook, err error) {
 	var orderbook []swagger.OrderBookL2
-	orderbook, err = b.GetOrderBookL2(depth)
+	orderbook, err = b.getOrderBookL2(depth)
 	if err != nil {
 		return
 	}

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty"
+	"gopkg.in/resty.v1"
 	"github.com/sumorf/bitmex-api/swagger"
 	"io/ioutil"
 	"log"

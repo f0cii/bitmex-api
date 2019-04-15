@@ -1111,7 +1111,7 @@ func (a *OrderApiService) OrderNew(ctx context.Context, symbol string, localVarO
 		return successPayload, nil, err
 	}
 
-	DebugHttpRequest(r)
+	//DebugHttpRequest(r)
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {

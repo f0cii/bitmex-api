@@ -25,7 +25,7 @@ func TestBitMEX_GetVersion(t *testing.T) {
 
 func TestBitMEX_GetOrderBookL2(t *testing.T) {
 	bitmex := newBitmexForTest()
-	orderBookL2, err := bitmex.GetOrderBookL2(5)
+	orderBookL2, err := bitmex.getOrderBookL2(5)
 	if err != nil {
 		t.Error(err)
 	}

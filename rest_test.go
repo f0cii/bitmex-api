@@ -28,6 +28,7 @@ func TestBitMEX_GetOrderBookL2(t *testing.T) {
 	orderBookL2, err := bitmex.getOrderBookL2(5)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log(orderBookL2)
 	rateLimit := bitmex.GetRateLimit()
@@ -39,6 +40,7 @@ func TestBitMEX_GetOrderBook(t *testing.T) {
 	orderBook, err := bitmex.GetOrderBook(5)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log(orderBook)
 }
@@ -48,6 +50,7 @@ func TestBitMEX_GetOrders(t *testing.T) {
 	orders, err := bitmex.GetOrders()
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log(orders)
 }
@@ -57,8 +60,26 @@ func TestBitMEX_GetPositions(t *testing.T) {
 	positions, err := bitmex.GetPositions()
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log(positions)
+}
+
+func TestBitMEX_PositionUpdateLeverage(t *testing.T) {
+	bitmex := newBitmexForTest()
+	leverage := 2.0
+	position, err := bitmex.PositionUpdateLeverage(leverage)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Logf("%#v", position)
+
+	if position.Leverage != leverage {
+		t.Error("Leverage error")
+		return
+	}
 }
 
 func TestBitMEX_NewOrder(t *testing.T) {

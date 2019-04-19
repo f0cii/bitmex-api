@@ -116,6 +116,16 @@ func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
 	return
 }
 
+func (b *BitMEX) PositionUpdateLeverage(leverage float64) (position swagger.Position, err error) {
+	var response *http.Response
+	position, response, err = b.client.PositionApi.PositionUpdateLeverage(b.ctx, b.symbol, leverage)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 	var response *http.Response
 

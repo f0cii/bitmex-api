@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sumorf/bitmex-api/swagger"
-	"gopkg.in/resty.v1"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,15 +28,19 @@ type Version struct {
 }
 
 func (b *BitMEX) GetVersion() (version Version, time time.Duration, err error) {
-	var resp *resty.Response
-
 	url := "https://" + b.host + "/api/v1"
-	resp, err = resty.R().Get(url)
+	var resp *http.Response
+	resp, err = b.cfg.HTTPClient.Get(url)
 	if err != nil {
 		return
 	}
-	time = resp.Time()
-	err = json.Unmarshal(resp.Body(), &version)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	//time = resp.Time()
+	err = json.Unmarshal(body, &version)
 	return
 }
 

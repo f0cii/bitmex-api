@@ -185,6 +185,7 @@ func (b *BitMEX) subscribeHandler() error {
 func (b *BitMEX) StartWS() {
 	u := url.URL{Scheme: "wss", Host: b.host, Path: "/realtime"}
 	bitmexWSURL := u.String()
+	b.ws.SetProxyURL(b.proxyURL)
 	b.ws.Dial(bitmexWSURL, nil)
 
 	go func() {

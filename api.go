@@ -3,8 +3,12 @@ package bitmex
 import (
 	"context"
 	"github.com/chuckpreslar/emission"
-	"github.com/mariuspass/recws"
+	"github.com/sumorf/bitmex-api/recws"
+
+	//"github.com/mariuspass/recws"
 	"github.com/sumorf/bitmex-api/swagger"
+	"net/http"
+	"net/url"
 	"sync"
 )
 
@@ -21,12 +25,14 @@ type RateLimit struct {
 
 // BitMEX describes the API
 type BitMEX struct {
-	Key    string
-	Secret string
-	symbol string
-	host   string
+	Key      string
+	Secret   string
+	symbol   string
+	host     string
+	proxyURL string
 
 	ctx                  context.Context
+	cfg                  *swagger.Configuration
 	client               *swagger.APIClient
 	rateLimitMutexPublic sync.RWMutex
 	rateLimitMutex       sync.RWMutex
@@ -55,7 +61,30 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 	b.host = host
 	b.ctx = MakeContext(key, secret, host, 10)
 	b.client = GetClient(b.ctx)
+	b.cfg = GetConfiguration(b.ctx)
+	b.client = swagger.NewAPIClient(b.cfg)
 	return b
+}
+
+// SetHttpProxy proxyURL: http://127.0.0.1:1080
+func (b *BitMEX) SetHttpProxy(proxyURL string) error {
+	proxyURL_, err := url.Parse(proxyURL)
+	if err != nil {
+		return err
+	}
+
+	//adding the proxy settings to the Transport object
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyURL_),
+	}
+
+	//adding the Transport object to the http Client
+	client := &http.Client{
+		Transport: transport,
+	}
+	b.cfg.HTTPClient = client
+	b.proxyURL = proxyURL
+	return nil
 }
 
 func (b *BitMEX) GetRateLimit() RateLimit {
@@ -77,6 +106,17 @@ func MakeContext(key string, secret string, host string, timeout int64) context.
 		Host:    host,
 		Timeout: timeout,
 	})
+}
+
+func GetConfiguration(ctx context.Context) *swagger.Configuration {
+	c := ctx.Value(swagger.ContextAPIKey).(swagger.APIKey)
+	cfg := &swagger.Configuration{
+		BasePath:      "https://" + c.Host + "/api/v1",
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Swagger-Codegen/1.0.0/go",
+		ExpireTime:    5, //seconds
+	}
+	return cfg
 }
 
 func GetClient(ctx context.Context) *swagger.APIClient {

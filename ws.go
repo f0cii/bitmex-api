@@ -220,6 +220,11 @@ func (b *BitMEX) StartWS() {
 	}()
 }
 
+// CloseWS closes the websocket connection
+func (b *BitMEX) CloseWS() {
+	b.ws.Close()
+}
+
 func (b *BitMEX) processOrderbook(msg *Response, symbol string) (err error) {
 	orderbook, _ := msg.Data.(OrderBookData)
 	if len(orderbook) < 1 {

@@ -71,6 +71,8 @@ func main() {
 		//}
 	}).On(bitmex.BitmexWSPosition, func(m []*swagger.Position, action string) {
 		fmt.Printf("Position action=%v positions=%#v\n", action, m)
+	}).On(bitmex.BitmexWSWallet, func(m []*swagger.Wallet, action string) {
+		fmt.Printf("Wallet action=%v wallets=%#v\n", action, m)
 	})
 
 	b.StartWS()

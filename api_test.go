@@ -3,7 +3,6 @@ package bitmex
 import (
 	"github.com/micro/go-config"
 	"github.com/micro/go-config/source/file"
-	"os"
 	"testing"
 )
 
@@ -17,11 +16,6 @@ var (
 	_key      string
 	_secret   string
 )
-
-func useProxy() {
-	os.Setenv("HTTP_PROXY", proxyURL)
-	os.Setenv("HTTPS_PROXY", proxyURL)
-}
 
 func loadConfig() {
 	err := config.Load(file.NewSource(file.WithPath("./testdata/config.yaml")))
@@ -56,11 +50,6 @@ func TestConfig(t *testing.T) {
 
 func newBitmexForTest() *BitMEX {
 	loadConfig()
-	if _proxyURL != "" {
-		os.Setenv("HTTP_PROXY", _proxyURL)
-		os.Setenv("HTTPS_PROXY", _proxyURL)
-	}
-
 	var host string
 	if _testnet {
 		host = BitmexTestnetHost
@@ -68,5 +57,8 @@ func newBitmexForTest() *BitMEX {
 		host = BitmexHost
 	}
 	bitmex := New(host, _key, _secret, "XBTUSD")
+	if _proxyURL != "" {
+		bitmex.SetHttpProxy(_proxyURL)
+	}
 	return bitmex
 }

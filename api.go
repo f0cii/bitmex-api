@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/chuckpreslar/emission"
 	"github.com/sumorf/bitmex-api/recws"
+	"time"
 
 	//"github.com/mariuspass/recws"
 	"github.com/sumorf/bitmex-api/swagger"
@@ -32,6 +33,7 @@ type BitMEX struct {
 	proxyURL string
 
 	ctx                  context.Context
+	timeout              time.Duration
 	cfg                  *swagger.Configuration
 	client               *swagger.APIClient
 	rateLimitMutexPublic sync.RWMutex
@@ -60,8 +62,11 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 	}
 	b.host = host
 	b.ctx = MakeContext(key, secret, host, 10)
-	b.client = GetClient(b.ctx)
+	b.timeout = 10 * time.Second
 	b.cfg = GetConfiguration(b.ctx)
+	b.cfg.HTTPClient = &http.Client{
+		Timeout: b.timeout,
+	}
 	b.client = swagger.NewAPIClient(b.cfg)
 	return b
 }
@@ -81,6 +86,7 @@ func (b *BitMEX) SetHttpProxy(proxyURL string) error {
 	//adding the Transport object to the http Client
 	client := &http.Client{
 		Transport: transport,
+		Timeout:   b.timeout,
 	}
 	b.cfg.HTTPClient = client
 	b.proxyURL = proxyURL

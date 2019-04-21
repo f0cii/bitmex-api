@@ -71,6 +71,11 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 	return b
 }
 
+// SetSymbol set symbol
+func (b *BitMEX) SetSymbol(symbol string) {
+	b.symbol = symbol
+}
+
 // SetHttpProxy proxyURL: http://127.0.0.1:1080
 func (b *BitMEX) SetHttpProxy(proxyURL string) error {
 	proxyURL_, err := url.Parse(proxyURL)

@@ -52,9 +52,9 @@ func newBitmexForTest() *BitMEX {
 	loadConfig()
 	var host string
 	if _testnet {
-		host = BitmexTestnetHost
+		host = HostTestnet
 	} else {
-		host = BitmexHost
+		host = HostReal
 	}
 	bitmex := New(host, _key, _secret, "XBTUSD")
 	if _proxyURL != "" {

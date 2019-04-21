@@ -30,7 +30,7 @@ type Version struct {
 func (b *BitMEX) GetVersion() (version Version, time time.Duration, err error) {
 	url := "https://" + b.host + "/api/v1"
 	var resp *http.Response
-	resp, err = b.cfg.HTTPClient.Get(url)
+	resp, err = b.httpClient.Get(url)
 	if err != nil {
 		return
 	}

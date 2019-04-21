@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	BitmexHost        = "www.bitmex.com"
-	BitmexTestnetHost = "testnet.bitmex.com"
+	HostReal    = "www.bitmex.com"
+	HostTestnet = "testnet.bitmex.com"
 )
 
 type RateLimit struct {
@@ -34,6 +34,7 @@ type BitMEX struct {
 
 	ctx                  context.Context
 	timeout              time.Duration
+	httpClient           *http.Client
 	cfg                  *swagger.Configuration
 	client               *swagger.APIClient
 	rateLimitMutexPublic sync.RWMutex
@@ -64,9 +65,10 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 	b.ctx = MakeContext(key, secret, host, 10)
 	b.timeout = 10 * time.Second
 	b.cfg = GetConfiguration(b.ctx)
-	b.cfg.HTTPClient = &http.Client{
+	b.httpClient = &http.Client{
 		Timeout: b.timeout,
 	}
+	b.cfg.HTTPClient = b.httpClient
 	b.client = swagger.NewAPIClient(b.cfg)
 	return b
 }
@@ -93,6 +95,7 @@ func (b *BitMEX) SetHttpProxy(proxyURL string) error {
 		Transport: transport,
 		Timeout:   b.timeout,
 	}
+	b.httpClient = client
 	b.cfg.HTTPClient = client
 	b.proxyURL = proxyURL
 	return nil

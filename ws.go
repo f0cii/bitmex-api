@@ -94,6 +94,20 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = orderbooks
+		case BitmexWSQuote:
+			var quotes []*swagger.Quote
+			err = json.Unmarshal([]byte(raw), &quotes)
+			if err != nil {
+				return res, err
+			}
+			res.Data = quotes
+		case BitmexWSQuoteBin1m, BitmexWSQuoteBin5m, BitmexWSQuoteBin1h, BitmexWSQuoteBin1d:
+			var tradeBins []*swagger.TradeBin
+			err = json.Unmarshal([]byte(raw), &tradeBins)
+			if err != nil {
+				return res, err
+			}
+			res.Data = tradeBins
 		case BitmexWSExecution:
 			var executions []*swagger.Execution
 			err = json.Unmarshal([]byte(raw), &executions)
@@ -221,8 +235,14 @@ func (b *BitMEX) StartWS() {
 			}
 
 			switch resp.Table {
+			case BitmexWSOrderBookL2_25:
+				b.processOrderbook(&resp, b.symbol)
 			case BitmexWSOrderBookL2:
 				b.processOrderbook(&resp, b.symbol)
+			case BitmexWSQuote:
+				b.processQuote(&resp, b.symbol)
+			case BitmexWSQuoteBin1m, BitmexWSQuoteBin5m, BitmexWSQuoteBin1h, BitmexWSQuoteBin1d:
+				b.processQuoteBin(&resp, resp.Table, b.symbol)
 			case BitmexWSExecution:
 				b.processExecution(&resp, b.symbol)
 			case BitmexWSOrder:
@@ -271,6 +291,26 @@ func (b *BitMEX) processOrderbook(msg *Response, symbol string) (err error) {
 	}
 
 	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBook.GetOrderbook())
+	return nil
+}
+
+func (b *BitMEX) processQuote(msg *Response, symbol string) (err error) {
+	quotes, _ := msg.Data.([]*swagger.Quote)
+	if len(quotes) < 1 {
+		return errors.New("ws.go error - no quote data")
+	}
+
+	b.emitter.Emit(BitmexWSQuote, quotes, msg.Action)
+	return nil
+}
+
+func (b *BitMEX) processQuoteBin(msg *Response, name string, symbol string) (err error) {
+	tradeBins, _ := msg.Data.([]*swagger.TradeBin)
+	if len(tradeBins) < 1 {
+		return errors.New("ws.go error - no tradeBin data")
+	}
+
+	b.emitter.Emit(name, tradeBins, msg.Action)
 	return nil
 }
 

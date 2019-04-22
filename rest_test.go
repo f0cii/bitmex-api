@@ -65,6 +65,16 @@ func TestBitMEX_GetWallet(t *testing.T) {
 	t.Logf("%#v", wallet)
 }
 
+func TestBitMEX_GetMargin(t *testing.T) {
+	bitmex := newBitmexForTest()
+	margin, err := bitmex.GetMargin()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", margin)
+}
+
 func TestBitMEX_GetPositions(t *testing.T) {
 	bitmex := newBitmexForTest()
 	positions, err := bitmex.GetPositions()

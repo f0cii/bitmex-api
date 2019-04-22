@@ -58,6 +58,20 @@ func (b *BitMEX) GetWallet() (wallet swagger.Wallet, err error) {
 	return
 }
 
+func (b *BitMEX) GetMargin() (margin swagger.Margin, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{
+		//"currency": "XBt",
+	}
+	margin, response, err = b.client.UserApi.UserGetMargin(b.ctx, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) getOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err error) {
 	var response *http.Response
 

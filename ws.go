@@ -94,6 +94,13 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = orderbooks
+		case BitmexWSExecution:
+			var executions []*swagger.Execution
+			err = json.Unmarshal([]byte(raw), &executions)
+			if err != nil {
+				return res, err
+			}
+			res.Data = executions
 		case BitmexWSOrder:
 			var orders []*swagger.Order
 			err = json.Unmarshal([]byte(raw), &orders)
@@ -101,6 +108,13 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = orders
+		case BitmexWSMargin:
+			var margins []*swagger.Margin
+			err = json.Unmarshal([]byte(raw), &margins)
+			if err != nil {
+				return res, err
+			}
+			res.Data = margins
 		case BitmexWSPosition:
 			var positions []*swagger.Position
 			err = json.Unmarshal([]byte(raw), &positions)
@@ -209,8 +223,12 @@ func (b *BitMEX) StartWS() {
 			switch resp.Table {
 			case BitmexWSOrderBookL2:
 				b.processOrderbook(&resp, b.symbol)
+			case BitmexWSExecution:
+				b.processExecution(&resp, b.symbol)
 			case BitmexWSOrder:
 				b.processOrder(&resp, b.symbol)
+			case BitmexWSMargin:
+				b.processMargin(&resp, b.symbol)
 			case BitmexWSPosition:
 				b.processPosition(&resp, b.symbol)
 			case BitmexWSWallet:
@@ -256,6 +274,16 @@ func (b *BitMEX) processOrderbook(msg *Response, symbol string) (err error) {
 	return nil
 }
 
+func (b *BitMEX) processExecution(msg *Response, symbol string) (err error) {
+	executions, _ := msg.Data.([]*swagger.Execution)
+	if len(executions) < 1 {
+		return errors.New("ws.go error - no execution data")
+	}
+
+	b.emitter.Emit(BitmexWSExecution, executions, msg.Action)
+	return nil
+}
+
 func (b *BitMEX) processOrder(msg *Response, symbol string) (err error) {
 	orders, _ := msg.Data.([]*swagger.Order)
 	if len(orders) < 1 {
@@ -263,6 +291,16 @@ func (b *BitMEX) processOrder(msg *Response, symbol string) (err error) {
 	}
 
 	b.emitter.Emit(BitmexWSOrder, orders, msg.Action)
+	return nil
+}
+
+func (b *BitMEX) processMargin(msg *Response, symbol string) (err error) {
+	margins, _ := msg.Data.([]*swagger.Margin)
+	if len(margins) < 1 {
+		return errors.New("ws.go error - no margin data")
+	}
+
+	b.emitter.Emit(BitmexWSMargin, margins, msg.Action)
 	return nil
 }
 

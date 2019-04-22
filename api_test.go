@@ -6,10 +6,6 @@ import (
 	"testing"
 )
 
-const (
-	proxyURL = "http://127.0.0.1:1080"
-)
-
 var (
 	_proxyURL string
 	_testnet  bool

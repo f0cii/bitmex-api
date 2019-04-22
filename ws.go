@@ -162,7 +162,11 @@ func (b *BitMEX) Subscribe(subscribeTypes []SubscribeInfo) error {
 	message := WSCmd{}
 	message.Command = "subscribe"
 	for _, v := range subscribeTypes {
-		message.Args = append(message.Args, v.Op+":"+v.Param) // "quote:XBTUSD"
+		args := v.Op
+		if v.Param != "" {
+			args += ":" + v.Param
+		}
+		message.Args = append(message.Args, args) // v.Op+":"+v.Param "quote:XBTUSD"
 	}
 	b.subscribeCmd = &message
 	b.subscribeHandler()

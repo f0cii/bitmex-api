@@ -52,7 +52,7 @@ func newBitmexForTest() *BitMEX {
 	} else {
 		host = HostReal
 	}
-	bitmex := New(host, _key, _secret, "XBTUSD")
+	bitmex := New(host, _key, _secret)
 	if _proxyURL != "" {
 		bitmex.SetHttpProxy(_proxyURL)
 	}

@@ -28,7 +28,6 @@ type RateLimit struct {
 type BitMEX struct {
 	Key      string
 	Secret   string
-	symbol   string
 	host     string
 	proxyURL string
 
@@ -42,21 +41,20 @@ type BitMEX struct {
 	rateLimitPublic      RateLimit
 	rateLimit            RateLimit
 
-	ws             recws.RecConn
-	emitter        *emission.Emitter
-	subscribeCmd   *WSCmd
-	orderBook      *OrderBookLocal
-	snapshotLoaded map[string]bool // key: symbol
+	ws              recws.RecConn
+	emitter         *emission.Emitter
+	subscribeCmd    *WSCmd
+	orderBookLocals map[string]*OrderBookLocal
+	snapshotLoaded  map[string]bool // key: symbol
 }
 
 // New allows the use of the public or private and websocket api
-func New(host string, key string, secret string, symbol string) *BitMEX {
+func New(host string, key string, secret string) *BitMEX {
 	b := &BitMEX{}
 	b.Key = key
 	b.Secret = secret
-	b.symbol = symbol
 	b.emitter = emission.NewEmitter()
-	b.orderBook = NewOrderBookLocal()
+	b.orderBookLocals = make(map[string]*OrderBookLocal)
 	b.snapshotLoaded = make(map[string]bool)
 	b.ws = recws.RecConn{
 		SubscribeHandler: b.subscribeHandler,
@@ -71,11 +69,6 @@ func New(host string, key string, secret string, symbol string) *BitMEX {
 	b.cfg.HTTPClient = b.httpClient
 	b.client = swagger.NewAPIClient(b.cfg)
 	return b
-}
-
-// SetSymbol set symbol
-func (b *BitMEX) SetSymbol(symbol string) {
-	b.symbol = symbol
 }
 
 // SetHttpProxy proxyURL: http://127.0.0.1:1080

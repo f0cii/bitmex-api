@@ -25,7 +25,7 @@ func TestBitMEX_GetVersion(t *testing.T) {
 
 func TestBitMEX_GetOrderBookL2(t *testing.T) {
 	bitmex := newBitmexForTest()
-	orderBookL2, err := bitmex.getOrderBookL2(5)
+	orderBookL2, err := bitmex.getOrderBookL2(5, "XBTUSD")
 	if err != nil {
 		t.Error(err)
 		return
@@ -37,7 +37,7 @@ func TestBitMEX_GetOrderBookL2(t *testing.T) {
 
 func TestBitMEX_GetOrderBook(t *testing.T) {
 	bitmex := newBitmexForTest()
-	orderBook, err := bitmex.GetOrderBook(5)
+	orderBook, err := bitmex.GetOrderBook(5, "XBTUSD")
 	if err != nil {
 		t.Error(err)
 		return
@@ -47,7 +47,7 @@ func TestBitMEX_GetOrderBook(t *testing.T) {
 
 func TestBitMEX_GetOrders(t *testing.T) {
 	bitmex := newBitmexForTest()
-	orders, err := bitmex.GetOrders()
+	orders, err := bitmex.GetOrders("XBTUSD")
 	if err != nil {
 		t.Error(err)
 		return
@@ -77,7 +77,7 @@ func TestBitMEX_GetMargin(t *testing.T) {
 
 func TestBitMEX_GetPositions(t *testing.T) {
 	bitmex := newBitmexForTest()
-	positions, err := bitmex.GetPositions()
+	positions, err := bitmex.GetPositions("XBTUSD")
 	if err != nil {
 		t.Error(err)
 		return
@@ -88,7 +88,7 @@ func TestBitMEX_GetPositions(t *testing.T) {
 func TestBitMEX_PositionUpdateLeverage(t *testing.T) {
 	bitmex := newBitmexForTest()
 	leverage := 2.0
-	position, err := bitmex.PositionUpdateLeverage(leverage)
+	position, err := bitmex.PositionUpdateLeverage(leverage, "XBTUSD")
 	if err != nil {
 		t.Error(err)
 		return
@@ -105,7 +105,7 @@ func TestBitMEX_PositionUpdateLeverage(t *testing.T) {
 func TestBitMEX_NewOrder(t *testing.T) {
 	bitmex := newBitmexForTest()
 	price := 3000.0
-	order, err := bitmex.NewOrder(SIDE_BUY, ORD_TYPE_LIMIT, price, 20, true)
+	order, err := bitmex.NewOrder(SIDE_BUY, ORD_TYPE_LIMIT, price, 20, true, "", "XBTUSD")
 	if err != nil {
 		// 403 Forbidden
 		t.Error(err)
@@ -136,7 +136,7 @@ func TestBitMEX_CancelOrder(t *testing.T) {
 
 func TestBitMEX_CancelAllOrders(t *testing.T) {
 	bitmex := newBitmexForTest()
-	orders, err := bitmex.CancelAllOrders()
+	orders, err := bitmex.CancelAllOrders("XBTUSD")
 	if err != nil {
 		// 400 Bad Request
 		t.Error(err)
@@ -164,7 +164,7 @@ func TestBitMEX_AmendOrder(t *testing.T) {
 func TestBitMEX_CloseOrder(t *testing.T) {
 	bitmex := newBitmexForTest()
 	price := 6000.0
-	order, err := bitmex.CloseOrder(SIDE_SELL, ORD_TYPE_LIMIT, price, 20, true)
+	order, err := bitmex.CloseOrder(SIDE_SELL, ORD_TYPE_LIMIT, price, 20, true, "", "XBTUSD")
 	if err != nil {
 		// 403 Forbidden
 		t.Error(err)

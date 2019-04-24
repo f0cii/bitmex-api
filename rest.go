@@ -72,13 +72,13 @@ func (b *BitMEX) GetMargin() (margin swagger.Margin, err error) {
 	return
 }
 
-func (b *BitMEX) getOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err error) {
+func (b *BitMEX) getOrderBookL2(depth int, symbol string) (orderbook []swagger.OrderBookL2, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
 	params["depth"] = float32(depth)
 
-	orderbook, response, err = b.client.OrderBookApi.OrderBookGetL2(b.symbol, params)
+	orderbook, response, err = b.client.OrderBookApi.OrderBookGetL2(symbol, params)
 	if err != nil {
 		return
 	}
@@ -86,9 +86,9 @@ func (b *BitMEX) getOrderBookL2(depth int) (orderbook []swagger.OrderBookL2, err
 	return
 }
 
-func (b *BitMEX) GetOrderBook(depth int) (ob OrderBook, err error) {
+func (b *BitMEX) GetOrderBook(depth int, symbol string) (ob OrderBook, err error) {
 	var orderbook []swagger.OrderBookL2
-	orderbook, err = b.getOrderBookL2(depth)
+	orderbook, err = b.getOrderBookL2(depth, symbol)
 	if err != nil {
 		return
 	}
@@ -119,11 +119,13 @@ func (b *BitMEX) GetOrderBook(depth int) (ob OrderBook, err error) {
 	return
 }
 
-func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
+func (b *BitMEX) GetPositions(symbol string) (positions []swagger.Position, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
-	params["filter"] = fmt.Sprintf(`{"symbol":"%s"}`, b.symbol)
+	if symbol != "" {
+		params["filter"] = fmt.Sprintf(`{"symbol":"%s"}`, symbol)
+	}
 
 	positions, response, err = b.client.PositionApi.PositionGet(b.ctx, params)
 	if err != nil {
@@ -133,9 +135,9 @@ func (b *BitMEX) GetPositions() (positions []swagger.Position, err error) {
 	return
 }
 
-func (b *BitMEX) PositionUpdateLeverage(leverage float64) (position swagger.Position, err error) {
+func (b *BitMEX) PositionUpdateLeverage(leverage float64, symbol string) (position swagger.Position, err error) {
 	var response *http.Response
-	position, response, err = b.client.PositionApi.PositionUpdateLeverage(b.ctx, b.symbol, leverage)
+	position, response, err = b.client.PositionApi.PositionUpdateLeverage(b.ctx, symbol, leverage)
 	if err != nil {
 		return
 	}
@@ -143,11 +145,11 @@ func (b *BitMEX) PositionUpdateLeverage(leverage float64) (position swagger.Posi
 	return
 }
 
-func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
+func (b *BitMEX) GetOrders(symbol string) (orders []swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
+	params["symbol"] = symbol
 	params["filter"] = `{"open":true}`
 
 	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
@@ -160,11 +162,11 @@ func (b *BitMEX) GetOrders() (orders []swagger.Order, err error) {
 	return
 }
 
-func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty int32, postOnly bool) (order swagger.Order, err error) {
+func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty int32, postOnly bool, timeInForce string, symbol string) (order swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
+	params["symbol"] = symbol
 	// params["clOrdID"] = ""	// 客户端委托ID
 	params["side"] = side
 	params["ordType"] = ordType
@@ -174,16 +176,15 @@ func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty i
 	}
 	params["text"] = `open with bitmex api`
 
-	//timeInForce := "FillOrKill"	// 全数执行或立刻取消
-	//if timeInForce != "" {
-	//	params["timeInForce"] = timeInForce
-	//}
+	if timeInForce != "" { // "FillOrKill"	// 全数执行或立刻取消
+		params["timeInForce"] = timeInForce
+	}
 
 	if postOnly {
 		params["execInst"] = "ParticipateDoNotInitiate"
 	}
 
-	order, response, err = b.client.OrderApi.OrderNew(b.ctx, b.symbol, params)
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)
 	if err != nil {
 		// >= 300 代表有错误
 		// 400 Bad Request
@@ -195,12 +196,12 @@ func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty i
 	return
 }
 
-func (b *BitMEX) GetOrder(oid string) (order swagger.Order, err error) {
+func (b *BitMEX) GetOrder(oid string, symbol string) (order swagger.Order, err error) {
 	var response *http.Response
 	var orders []swagger.Order
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
+	params["symbol"] = symbol
 	params["filter"] = fmt.Sprintf(`{"orderID":"%s"}`, oid)
 
 	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
@@ -231,11 +232,11 @@ func (b *BitMEX) AmendOrder(oid string, price float64) (order swagger.Order, err
 	return
 }
 
-func (b *BitMEX) CancelAllOrders() (orders []swagger.Order, err error) {
+func (b *BitMEX) CancelAllOrders(symbol string) (orders []swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
+	params["symbol"] = symbol
 	params["text"] = "cancel order with bitmex api"
 
 	orders, response, err = b.client.OrderApi.OrderCancelAll(b.ctx, params)
@@ -267,11 +268,11 @@ func (b *BitMEX) CancelOrder(oid string) (order swagger.Order, err error) {
 	return
 }
 
-func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty int32, postOnly bool) (order swagger.Order, err error) {
+func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty int32, postOnly bool, timeInForce string, symbol string) (order swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
-	params["symbol"] = b.symbol
+	params["symbol"] = symbol
 	params["side"] = side
 	params["ordType"] = ordType
 	params["orderQty"] = float32(orderQty)
@@ -281,16 +282,16 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 	params["text"] = `close with bitmex api`
 
 	//timeInForce := "FillOrKill"	// 全数执行或立刻取消
-	//if timeInForce != "" {
-	//	params["timeInForce"] = timeInForce
-	//}
+	if timeInForce != "" {
+		params["timeInForce"] = timeInForce
+	}
 
 	execInst := "Close"
 	if postOnly {
 		execInst += ",ParticipateDoNotInitiate"
 	}
 	params["execInst"] = execInst
-	order, response, err = b.client.OrderApi.OrderNew(b.ctx, b.symbol, params)
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)
 	if err != nil {
 		return
 	}

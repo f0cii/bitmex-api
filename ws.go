@@ -236,23 +236,23 @@ func (b *BitMEX) StartWS() {
 
 			switch resp.Table {
 			case BitmexWSOrderBookL2_25:
-				b.processOrderbook(&resp, b.symbol)
+				b.processOrderbook(&resp)
 			case BitmexWSOrderBookL2:
-				b.processOrderbook(&resp, b.symbol)
+				b.processOrderbook(&resp)
 			case BitmexWSQuote:
-				b.processQuote(&resp, b.symbol)
+				b.processQuote(&resp)
 			case BitmexWSQuoteBin1m, BitmexWSQuoteBin5m, BitmexWSQuoteBin1h, BitmexWSQuoteBin1d:
-				b.processQuoteBin(&resp, resp.Table, b.symbol)
+				b.processQuoteBin(&resp, resp.Table)
 			case BitmexWSExecution:
-				b.processExecution(&resp, b.symbol)
+				b.processExecution(&resp)
 			case BitmexWSOrder:
-				b.processOrder(&resp, b.symbol)
+				b.processOrder(&resp)
 			case BitmexWSMargin:
-				b.processMargin(&resp, b.symbol)
+				b.processMargin(&resp)
 			case BitmexWSPosition:
-				b.processPosition(&resp, b.symbol)
+				b.processPosition(&resp)
 			case BitmexWSWallet:
-				b.processWallet(&resp, b.symbol)
+				b.processWallet(&resp)
 			default:
 				log.Printf("Unknown message Msg=%#v", resp)
 			}
@@ -267,34 +267,41 @@ func (b *BitMEX) CloseWS() {
 	b.ws.Close()
 }
 
-func (b *BitMEX) processOrderbook(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 	orderbook, _ := msg.Data.(OrderBookData)
 	if len(orderbook) < 1 {
 		return errors.New("ws.go error - no orderbook data")
 	}
+
+	symbol := orderbook[0].Symbol
 
 	_, ok := b.snapshotLoaded[symbol]
 	if !ok {
 		b.snapshotLoaded[symbol] = false
 	}
 
+	_, ok = b.orderBookLocals[symbol]
+	if !ok {
+		b.orderBookLocals[symbol] = NewOrderBookLocal()
+	}
+
 	switch msg.Action {
 	case bitmexActionInitialData:
 		if !b.snapshotLoaded[symbol] {
-			b.orderBook.LoadSnapshot(orderbook)
+			b.orderBookLocals[symbol].LoadSnapshot(orderbook)
 			b.snapshotLoaded[symbol] = true
 		}
 	default:
 		if b.snapshotLoaded[symbol] {
-			b.orderBook.Update(orderbook, msg.Action)
+			b.orderBookLocals[symbol].Update(orderbook, msg.Action)
 		}
 	}
 
-	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBook.GetOrderbook())
+	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBookLocals[symbol].GetOrderbook())
 	return nil
 }
 
-func (b *BitMEX) processQuote(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processQuote(msg *Response) (err error) {
 	quotes, _ := msg.Data.([]*swagger.Quote)
 	if len(quotes) < 1 {
 		return errors.New("ws.go error - no quote data")
@@ -304,7 +311,7 @@ func (b *BitMEX) processQuote(msg *Response, symbol string) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processQuoteBin(msg *Response, name string, symbol string) (err error) {
+func (b *BitMEX) processQuoteBin(msg *Response, name string) (err error) {
 	tradeBins, _ := msg.Data.([]*swagger.TradeBin)
 	if len(tradeBins) < 1 {
 		return errors.New("ws.go error - no tradeBin data")
@@ -314,7 +321,7 @@ func (b *BitMEX) processQuoteBin(msg *Response, name string, symbol string) (err
 	return nil
 }
 
-func (b *BitMEX) processExecution(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processExecution(msg *Response) (err error) {
 	executions, _ := msg.Data.([]*swagger.Execution)
 	if len(executions) < 1 {
 		return errors.New("ws.go error - no execution data")
@@ -324,7 +331,7 @@ func (b *BitMEX) processExecution(msg *Response, symbol string) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processOrder(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processOrder(msg *Response) (err error) {
 	orders, _ := msg.Data.([]*swagger.Order)
 	if len(orders) < 1 {
 		return errors.New("ws.go error - no order data")
@@ -334,7 +341,7 @@ func (b *BitMEX) processOrder(msg *Response, symbol string) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processMargin(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processMargin(msg *Response) (err error) {
 	margins, _ := msg.Data.([]*swagger.Margin)
 	if len(margins) < 1 {
 		return errors.New("ws.go error - no margin data")
@@ -344,7 +351,7 @@ func (b *BitMEX) processMargin(msg *Response, symbol string) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processPosition(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processPosition(msg *Response) (err error) {
 	positions, _ := msg.Data.([]*swagger.Position)
 	if len(positions) < 1 {
 		return errors.New("ws.go error - no position data")
@@ -354,7 +361,7 @@ func (b *BitMEX) processPosition(msg *Response, symbol string) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processWallet(msg *Response, symbol string) (err error) {
+func (b *BitMEX) processWallet(msg *Response) (err error) {
 	wallets, _ := msg.Data.([]*swagger.Wallet)
 	if len(wallets) < 1 {
 		return errors.New("ws.go error - no wallet data")

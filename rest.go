@@ -14,10 +14,16 @@ import (
 )
 
 const (
-	SIDE_BUY        = "Buy"
-	SIDE_SELL       = "Sell"
-	ORD_TYPE_MARKET = "Market"
-	ORD_TYPE_LIMIT  = "Limit"
+	SIDE_BUY  = "Buy"
+	SIDE_SELL = "Sell"
+
+	ORD_TYPE_MARKET                         = "Market"          // 市价
+	ORD_TYPE_LIMIT                          = "Limit"           // 限价
+	ORD_TYPE_STOP                           = "Stop"            // 市价止损
+	ORD_TYPE_STOP_LIMIT                     = "StopLimit"       // 限价止损
+	ORD_TYPE_MARKET_IF_TOUCHED              = "MarketIfTouched" // 市价止盈
+	ORD_TYPE_LIMIT_IF_TOUCHED               = "LimitIfTouched"  // 限价止盈
+	ORD_TYPE_MARKET_WITH_LEFT_OVER_AS_LIMIT = "MarketWithLeftOverAsLimit"
 )
 
 // {"name":"BitMEX API","version":"1.2.0","timestamp":1554709447283}
@@ -182,6 +188,45 @@ func (b *BitMEX) NewOrder(side string, ordType string, price float64, orderQty i
 
 	if postOnly {
 		params["execInst"] = "ParticipateDoNotInitiate"
+	}
+
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)
+	if err != nil {
+		// >= 300 代表有错误
+		// 400 Bad Request
+		// 503
+		// log.Printf("response.StatusCode: %v", response.StatusCode)
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
+// PlaceOrder 放置委托单
+// execInst: MarkPrice = 标记价格 IndexPrice = 指数价格 LastPrice = 最新成交 ParticipateDoNotInitiate = 被动委托
+func (b *BitMEX) PlaceOrder(side string, ordType string, stopPx float64, price float64, orderQty int32, timeInForce string, execInst string, symbol string) (order swagger.Order, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	params["symbol"] = symbol
+	// params["clOrdID"] = ""	// 客户端委托ID
+	params["side"] = side
+	params["ordType"] = ordType
+	params["orderQty"] = float32(orderQty)
+	if stopPx > 0.0 {
+		params["stopPx"] = stopPx
+	}
+	if price > 0.0 {
+		params["price"] = price // Limit order only
+	}
+	params["text"] = `open with bitmex api`
+
+	if timeInForce != "" { // "FillOrKill"	// 全数执行或立刻取消
+		params["timeInForce"] = timeInForce
+	}
+
+	if execInst != "" {
+		params["execInst"] = execInst
 	}
 
 	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)

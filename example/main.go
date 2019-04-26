@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	b := bitmex.New(bitmex.BitmexTestnetHost, "8K2Oi0bnRRZ7GK4UJnY-38oj", "9EmGvk8mKX5nWa11y1KyPPGn78Lv2ZEiLx3TH0YasE_oE06y", "XBTUSD")
+	b := bitmex.New(bitmex.HostTestnet, "8K2Oi0bnRRZ7GK4UJnY-38oj", "9EmGvk8mKX5nWa11y1KyPPGn78Lv2ZEiLx3TH0YasE_oE06y")
 	subscribeInfos := []bitmex.SubscribeInfo{
 		{Op: bitmex.BitmexWSOrderBookL2, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSOrder, Param: "XBTUSD"},
@@ -22,7 +22,7 @@ func main() {
 
 	orders := map[string]*swagger.Order{}
 
-	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBook) {
+	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBook, symbol string) {
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", m.Asks[0], m.Bids[0])
 	}).On(bitmex.BitmexWSOrder, func(m []*swagger.Order, action string) {
 		fmt.Printf("Order action=%v orders=%#v\n", action, m)

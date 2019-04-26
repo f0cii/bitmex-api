@@ -224,13 +224,18 @@ func (b *BitMEX) StartWS() {
 		for {
 			_, message, err := b.ws.ReadMessage()
 			if err != nil {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 				log.Println("read:", err)
 				continue
 			}
 			resp, err := decodeMessage(message)
 			if err != nil {
 				log.Println("decode:", err)
+				continue
+			}
+
+			if resp.Success {
+				log.Println(string(message))
 				continue
 			}
 
@@ -254,7 +259,12 @@ func (b *BitMEX) StartWS() {
 			case BitmexWSWallet:
 				b.processWallet(&resp)
 			default:
-				log.Printf("Unknown message Msg=%#v", resp)
+				if resp.Subscribe != "" {
+					log.Printf("Subscribe message Msg=%#v", resp)
+				} else {
+					log.Printf("Unknown message Msg=%#v", resp)
+					log.Println("resp:", string(message))
+				}
 			}
 
 			//log.Println("resp:", resp)
@@ -297,7 +307,7 @@ func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 		}
 	}
 
-	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBookLocals[symbol].GetOrderbook())
+	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBookLocals[symbol].GetOrderbook(), symbol)
 	return nil
 }
 

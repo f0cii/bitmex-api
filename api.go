@@ -4,6 +4,9 @@ import (
 	"context"
 	"github.com/chuckpreslar/emission"
 	"github.com/sumorf/bitmex-api/recws"
+	"golang.org/x/net/proxy"
+	"log"
+	"net"
 	"time"
 
 	//"github.com/mariuspass/recws"
@@ -91,6 +94,27 @@ func (b *BitMEX) SetHttpProxy(proxyURL string) error {
 	b.httpClient = client
 	b.cfg.HTTPClient = client
 	b.proxyURL = proxyURL
+	return nil
+}
+
+// SetProxy proxyURL: 127.0.0.1:1080
+func (b *BitMEX) SetProxy(socks5Proxy string) error {
+	// socks5Proxy := "127.0.0.1:1080"
+	dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
+	if err != nil {
+		log.Fatal("Error creating dialer, aborting.")
+	}
+
+	dialFunc := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return dialer.Dial(network, addr)
+	}
+
+	tr := &http.Transport{DialContext: dialFunc} // Dial: dialer.Dial,
+	client := &http.Client{Transport: tr, Timeout: b.timeout}
+
+	b.httpClient = client
+	b.cfg.HTTPClient = client
+	b.proxyURL = "http://" + socks5Proxy
 	return nil
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func TestBitMEXConnect(t *testing.T) {
-	b := New(HostTestnet, "", "", "XBTUSD")
+	b := New(HostTestnet, "", "")
 	b.SetHttpProxy("http://127.0.0.1:1080")
 	subscribeInfos := []SubscribeInfo{
 		{Op: BitmexWSOrderBookL2, Param: "XBTUSD"},
@@ -27,7 +27,7 @@ func TestBitMEXConnect(t *testing.T) {
 }
 
 func TestBitMEXWS(t *testing.T) {
-	b := New(HostTestnet, "", "", "XBTUSD")
+	b := New(HostTestnet, "", "")
 	b.SetHttpProxy("http://127.0.0.1:1080")
 	subscribeInfos := []SubscribeInfo{
 		{Op: BitmexWSOrderBookL2, Param: "XBTUSD"},

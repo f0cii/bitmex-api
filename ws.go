@@ -307,7 +307,7 @@ func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 		}
 	}
 
-	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBookLocals[symbol].GetOrderbook(), symbol)
+	b.emitter.Emit(BitmexWSOrderBookL2, b.orderBookLocals[symbol].GetOrderbookL2(), symbol)
 	return nil
 }
 

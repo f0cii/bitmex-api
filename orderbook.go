@@ -23,6 +23,39 @@ func (o *OrderBookL2) Key() string {
 
 type OrderBookData []*OrderBookL2
 
+type OrderBookDataL2 struct {
+	RawData   []OrderBookL2
+	Timestamp time.Time
+}
+
+func (o *OrderBookDataL2) OrderBook() (ob OrderBook) {
+	for _, v := range o.RawData {
+		switch v.Side {
+		case "Buy":
+			ob.Bids = append(ob.Bids, Item{
+				Price:  v.Price,
+				Amount: float64(v.Size),
+			})
+		case "Sell":
+			ob.Asks = append(ob.Asks, Item{
+				Price:  v.Price,
+				Amount: float64(v.Size),
+			})
+		}
+	}
+
+	sort.Slice(ob.Bids, func(i, j int) bool {
+		return ob.Bids[i].Price > ob.Bids[j].Price
+	})
+
+	sort.Slice(ob.Asks, func(i, j int) bool {
+		return ob.Asks[i].Price < ob.Asks[j].Price
+	})
+
+	ob.Timestamp = o.Timestamp
+	return
+}
+
 // OrderBook10 contains order book 10
 type OrderBook10 struct {
 	Bids      [][]float64 `json:"bids"`
@@ -71,6 +104,15 @@ func NewOrderBookLocal() *OrderBookLocal {
 		ob: make(map[string]*OrderBookL2),
 	}
 	return o
+}
+
+func (o *OrderBookLocal) GetOrderbookL2() (ob OrderBookDataL2) {
+	ob.RawData = make([]OrderBookL2, 0, len(o.ob))
+	for _, v := range o.ob {
+		ob.RawData = append(ob.RawData, *v)
+	}
+	ob.Timestamp = time.Now()
+	return
 }
 
 func (o *OrderBookLocal) GetOrderbook() (ob OrderBook) {

@@ -22,8 +22,9 @@ func main() {
 
 	orders := map[string]*swagger.Order{}
 
-	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBook, symbol string) {
-		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", m.Asks[0], m.Bids[0])
+	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBookDataL2, symbol string) {
+		ob := m.OrderBook()
+		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", ob.Asks[0], ob.Bids[0])
 	}).On(bitmex.BitmexWSOrder, func(m []*swagger.Order, action string) {
 		fmt.Printf("Order action=%v orders=%#v\n", action, m)
 

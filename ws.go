@@ -87,6 +87,13 @@ func decodeMessage(message []byte) (Response, error) {
 	if ret.Get("table").Exists() {
 		raw := ret.Get("data").Raw
 		switch res.Table {
+		case BitmexWSInstrument:
+			var instruments []*swagger.Instrument
+			err = json.Unmarshal([]byte(raw), &instruments)
+			if err != nil {
+				return res, err
+			}
+			res.Data = instruments
 		case BitmexWSOrderBookL2:
 			var orderbooks OrderBookData
 			err = json.Unmarshal([]byte(raw), &orderbooks)
@@ -240,6 +247,8 @@ func (b *BitMEX) StartWS() {
 			}
 
 			switch resp.Table {
+			case BitmexWSInstrument:
+				b.processInstrument(&resp)
 			case BitmexWSOrderBookL2_25:
 				b.processOrderbook(&resp)
 			case BitmexWSOrderBookL2:
@@ -275,6 +284,16 @@ func (b *BitMEX) StartWS() {
 // CloseWS closes the websocket connection
 func (b *BitMEX) CloseWS() {
 	b.ws.Close()
+}
+
+func (b *BitMEX) processInstrument(msg *Response) (err error) {
+	instruments, _ := msg.Data.([]*swagger.Instrument)
+	if len(instruments) < 1 {
+		return errors.New("ws.go error - no instrument data")
+	}
+
+	b.emitter.Emit(BitmexWSInstrument, instruments, msg.Action)
+	return nil
 }
 
 func (b *BitMEX) processOrderbook(msg *Response) (err error) {

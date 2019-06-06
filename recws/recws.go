@@ -48,6 +48,7 @@ type RecConn struct {
 	httpResp    *http.Response
 	dialErr     error
 	isConnected bool
+	isClosed    bool
 	dialer      *websocket.Dialer
 
 	*websocket.Conn
@@ -56,6 +57,9 @@ type RecConn struct {
 // CloseAndReconnect will try to reconnect.
 func (rc *RecConn) closeAndReconnect() {
 	rc.Close()
+	if rc.IsClosed() {
+		return
+	}
 	go rc.connect()
 }
 
@@ -65,6 +69,14 @@ func (rc *RecConn) setIsConnected(state bool) {
 	defer rc.mu.Unlock()
 
 	rc.isConnected = state
+}
+
+// setIsClosed sets state for isClosed
+func (rc *RecConn) setIsClosed(state bool) {
+	rc.mu.Lock()
+	defer rc.mu.Unlock()
+
+	rc.isClosed = state
 }
 
 func (rc *RecConn) getConn() *websocket.Conn {
@@ -82,6 +94,20 @@ func (rc *RecConn) SetProxyURL(proxyURL string) {
 // Close closes the underlying network connection without
 // sending or waiting for a close frame.
 func (rc *RecConn) Close() {
+	if rc.getConn() != nil {
+		rc.mu.Lock()
+		rc.Conn.Close()
+		rc.mu.Unlock()
+	}
+
+	rc.setIsConnected(false)
+}
+
+// CloseWS closes the underlying network connection without
+// sending or waiting for a close frame.
+func (rc *RecConn) CloseWS() {
+	rc.setIsClosed(true)
+
 	if rc.getConn() != nil {
 		rc.mu.Lock()
 		rc.Conn.Close()
@@ -355,6 +381,9 @@ func (rc *RecConn) keepAlive() {
 		for {
 			rc.writeControlPingMessage()
 			<-ticker.C
+			if rc.IsClosed() {
+				return
+			}
 			if time.Now().Sub(keepAliveResponse.getLastResponse()) > rc.getKeepAliveTimeout() {
 				rc.closeAndReconnect()
 				return
@@ -368,6 +397,9 @@ func (rc *RecConn) connect() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	for {
+		if rc.IsClosed() {
+			return
+		}
 		nextItvl := b.Duration()
 		wsConn, httpResp, err := rc.dialer.Dial(rc.url, rc.reqHeader)
 
@@ -377,6 +409,10 @@ func (rc *RecConn) connect() {
 		rc.isConnected = err == nil
 		rc.httpResp = httpResp
 		rc.mu.Unlock()
+
+		if rc.IsClosed() {
+			return
+		}
 
 		if err == nil {
 			if !rc.getNonVerbose() {
@@ -434,4 +470,12 @@ func (rc *RecConn) IsConnected() bool {
 	defer rc.mu.RUnlock()
 
 	return rc.isConnected
+}
+
+// IsClosed returns the WebSocket connection state
+func (rc *RecConn) IsClosed() bool {
+	rc.mu.RLock()
+	defer rc.mu.RUnlock()
+
+	return rc.isClosed
 }

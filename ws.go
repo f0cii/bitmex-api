@@ -231,6 +231,10 @@ func (b *BitMEX) StartWS() {
 		for {
 			_, message, err := b.ws.ReadMessage()
 			if err != nil {
+				if b.ws.IsClosed() {
+					log.Println("StartWS done")
+					return
+				}
 				time.Sleep(500 * time.Millisecond)
 				log.Println("read:", err)
 				continue
@@ -283,7 +287,7 @@ func (b *BitMEX) StartWS() {
 
 // CloseWS closes the websocket connection
 func (b *BitMEX) CloseWS() {
-	b.ws.Close()
+	b.ws.CloseWS()
 }
 
 func (b *BitMEX) processInstrument(msg *Response) (err error) {

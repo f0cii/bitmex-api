@@ -66,8 +66,8 @@ type OrderBook10 struct {
 
 // Item stores the amount and price values
 type Item struct {
-	Amount float64
-	Price  float64
+	Amount float64 `json:"amount"`
+	Price  float64 `json:"price"`
 }
 
 type OrderBook struct {

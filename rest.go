@@ -141,6 +141,28 @@ func (b *BitMEX) GetPositions(symbol string) (positions []swagger.Position, err 
 	return
 }
 
+func (b *BitMEX) GetPositionsRaw(filter string, columns string, count int32) (positions []swagger.Position, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	if filter != "" {
+		params["filter"] = filter
+	}
+	if columns != "" {
+		params["columns"] = columns
+	}
+	if count > 0 {
+		params["count"] = count
+	}
+
+	positions, response, err = b.client.PositionApi.PositionGet(b.ctx, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) PositionUpdateLeverage(leverage float64, symbol string) (position swagger.Position, err error) {
 	var response *http.Response
 	position, response, err = b.client.PositionApi.PositionUpdateLeverage(b.ctx, symbol, leverage)
@@ -157,6 +179,27 @@ func (b *BitMEX) GetOrders(symbol string) (orders []swagger.Order, err error) {
 	params := map[string]interface{}{}
 	params["symbol"] = symbol
 	params["filter"] = `{"open":true}`
+
+	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Printf("%v", string(body))
+	return
+}
+
+func (b *BitMEX) GetOrdersRaw(symbol string, filter string) (orders []swagger.Order, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	if symbol != "" {
+		params["symbol"] = symbol
+	}
+	if filter != "" {
+		params["filter"] = filter // `{"open":true}`
+	}
 
 	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
 	if err != nil {

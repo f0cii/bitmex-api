@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/sumorf/bitmex-api/swagger"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -185,8 +184,8 @@ func (b *BitMEX) GetOrders(symbol string) (orders []swagger.Order, err error) {
 		return
 	}
 	b.onResponse(response)
-	body, _ := ioutil.ReadAll(response.Body)
-	log.Printf("%v", string(body))
+	//body, _ := ioutil.ReadAll(response.Body)
+	//log.Printf("%v", string(body))
 	return
 }
 
@@ -206,8 +205,8 @@ func (b *BitMEX) GetOrdersRaw(symbol string, filter string) (orders []swagger.Or
 		return
 	}
 	b.onResponse(response)
-	body, _ := ioutil.ReadAll(response.Body)
-	log.Printf("%v", string(body))
+	//body, _ := ioutil.ReadAll(response.Body)
+	//log.Printf("%v", string(body))
 	return
 }
 
@@ -256,6 +255,48 @@ func (b *BitMEX) PlaceOrder(side string, ordType string, stopPx float64, price f
 	params["side"] = side
 	params["ordType"] = ordType
 	params["orderQty"] = float32(orderQty)
+	if stopPx > 0.0 {
+		params["stopPx"] = stopPx
+	}
+	if price > 0.0 {
+		params["price"] = price // Limit order only
+	}
+	params["text"] = `open with bitmex api`
+
+	if timeInForce != "" { // "FillOrKill"	// 全数执行或立刻取消
+		params["timeInForce"] = timeInForce
+	}
+
+	if execInst != "" {
+		params["execInst"] = execInst
+	}
+
+	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)
+	if err != nil {
+		// >= 300 代表有错误
+		// 400 Bad Request
+		// 503
+		// log.Printf("response.StatusCode: %v", response.StatusCode)
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
+// PlaceOrder 放置委托单
+// execInst: MarkPrice = 标记价格 IndexPrice = 指数价格 LastPrice = 最新成交 ParticipateDoNotInitiate = 被动委托
+func (b *BitMEX) PlaceOrder2(side string, ordType string, stopPx float64, price float64, orderQty int32, displayQty int32, timeInForce string, execInst string, symbol string) (order swagger.Order, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	params["symbol"] = symbol
+	// params["clOrdID"] = ""	// 客户端委托ID
+	params["side"] = side
+	params["ordType"] = ordType
+	params["orderQty"] = float32(orderQty)
+	if displayQty >= 0 {
+		params["displayQty"] = displayQty
+	}
 	if stopPx > 0.0 {
 		params["stopPx"] = stopPx
 	}

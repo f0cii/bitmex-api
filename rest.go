@@ -361,6 +361,52 @@ func (b *BitMEX) AmendOrder(oid string, price float64) (order swagger.Order, err
 	return
 }
 
+func (b *BitMEX) AmendOrder2(orderID string, origClOrdID string, clOrdID string, simpleOrderQty float64, orderQty float32, simpleLeavesQty float64, leavesQty float32, price float64, stopPx float64, pegOffsetValue float64, text string) (order swagger.Order, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	if orderID != "" {
+		params["orderID"] = orderID
+	}
+	if origClOrdID != "" {
+		params["origClOrdID"] = origClOrdID
+	}
+	if clOrdID != "" {
+		params["clOrdID"] = clOrdID
+	}
+	if simpleOrderQty != 0 {
+		params["simpleOrderQty"] = simpleOrderQty
+	}
+	if orderQty != 0 {
+		params["orderQty"] = orderQty
+	}
+	if simpleLeavesQty != 0 {
+		params["simpleLeavesQty"] = simpleLeavesQty
+	}
+	if leavesQty != 0 {
+		params["leavesQty"] = leavesQty
+	}
+	if price != 0 {
+		params["price"] = price
+	}
+	if stopPx != 0 {
+		params["stopPx"] = stopPx
+	}
+	if pegOffsetValue != 0 {
+		params["pegOffsetValue"] = pegOffsetValue
+	}
+	if text != "" {
+		params["text"] = text
+	}
+
+	order, response, err = b.client.OrderApi.OrderAmend(b.ctx, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) CancelAllOrders(symbol string) (orders []swagger.Order, err error) {
 	var response *http.Response
 
@@ -421,6 +467,18 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 	}
 	params["execInst"] = execInst
 	order, response, err = b.client.OrderApi.OrderNew(b.ctx, symbol, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
+func (b *BitMEX) RequestWithdrawal(currency string, amount float32, address string) (trans swagger.Transaction, err error) {
+	var response *http.Response
+	params := map[string]interface{}{}
+	//params["otpToken"] = "708834"
+	trans, response, err = b.client.UserApi.UserRequestWithdrawal(b.ctx, currency, amount, address, params)
 	if err != nil {
 		return
 	}

@@ -62,6 +62,7 @@ func TestBitMEX_GetWallet(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	// XBt
 	t.Logf("%#v", wallet)
 }
 
@@ -179,4 +180,17 @@ func TestBitMEX_CloseOrder(t *testing.T) {
 		return
 	}
 	t.Logf("%#v", order)
+}
+
+func TestBitMEX_RequestWithdrawal(t *testing.T) {
+	bitmex := newBitmexForTest2()
+	currency := "XBt"
+	amount := float32(1000000.0)
+	address := "3BMEXT9XuBTSkALWTovH1idLSC2tusjKBT"
+	trans, err := bitmex.RequestWithdrawal(currency, amount, address)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", trans)
 }

@@ -1,6 +1,8 @@
 package bitmex
 
 import (
+	"fmt"
+	"github.com/dgryski/dgoogauth"
 	"math"
 	"testing"
 	"time"
@@ -187,7 +189,10 @@ func TestBitMEX_RequestWithdrawal(t *testing.T) {
 	currency := "XBt"
 	amount := float32(1000000.0)
 	address := "3BMEXT9XuBTSkALWTovH1idLSC2tusjKBT"
-	trans, err := bitmex.RequestWithdrawal(currency, amount, address)
+	optToken := ""
+	fee := 0.0
+	// 401 Unauthorized
+	trans, err := bitmex.RequestWithdrawal(currency, amount, address, optToken, fee)
 	if err != nil {
 		t.Error(err)
 		return

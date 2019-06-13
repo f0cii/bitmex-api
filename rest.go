@@ -474,11 +474,26 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 	return
 }
 
-func (b *BitMEX) RequestWithdrawal(currency string, amount float32, address string) (trans swagger.Transaction, err error) {
+func (b *BitMEX) RequestWithdrawal(currency string, amount float32, address string, otpToken string, fee float64) (trans swagger.Transaction, err error) {
 	var response *http.Response
 	params := map[string]interface{}{}
-	//params["otpToken"] = "708834"
+	if otpToken != "" {
+		params["otpToken"] = otpToken
+	}
+	if fee >= 0 {
+		params["fee"] = fee
+	}
 	trans, response, err = b.client.UserApi.UserRequestWithdrawal(b.ctx, currency, amount, address, params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
+func (b *BitMEX) ConfirmWithdrawal(token string) (trans swagger.Transaction, err error) {
+	var response *http.Response
+	trans, response, err = b.client.UserApi.UserConfirmWithdrawal(token)
 	if err != nil {
 		return
 	}

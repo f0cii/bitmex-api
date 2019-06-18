@@ -124,6 +124,41 @@ func (b *BitMEX) GetOrderBook(depth int, symbol string) (ob OrderBook, err error
 	return
 }
 
+func (b *BitMEX) GetBucketed(symbol string, binSize string, partial bool, filter string, columns string, count float32, start float32, reverse bool, startTime time.Time, endTime time.Time) (o []swagger.TradeBin, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	params["binSize"] = binSize
+	params["partial"] = partial
+	params["symbol"] = symbol
+	if filter != "" {
+		params["filter"] = filter
+	}
+	if columns != "" {
+		params["columns"] = columns
+	}
+	if count > 0 {
+		params["count"] = count
+	}
+	if start >= 0 {
+		params["start"] = start
+	}
+	params["reverse"] = reverse
+	if !startTime.IsZero() {
+		params["startTime"] = startTime
+	}
+	if !endTime.IsZero() {
+		params["endTime"] = endTime
+	}
+	//params["endTime"] = endTime
+	o, response, err = b.client.TradeApi.TradeGetBucketed(params)
+	if err != nil {
+		return
+	}
+	b.onResponsePublic(response)
+	return
+}
+
 func (b *BitMEX) GetPositions(symbol string) (positions []swagger.Position, err error) {
 	var response *http.Response
 

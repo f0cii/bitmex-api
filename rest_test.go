@@ -1,8 +1,6 @@
 package bitmex
 
 import (
-	"fmt"
-	"github.com/dgryski/dgoogauth"
 	"math"
 	"testing"
 	"time"
@@ -45,6 +43,21 @@ func TestBitMEX_GetOrderBook(t *testing.T) {
 		return
 	}
 	t.Log(orderBook)
+}
+
+func TestBitMEX_GetBucketed(t *testing.T) {
+	bitmex := newBitmexForTest()
+	startTime := time.Now().Add(-time.Minute * 8).UTC()
+	var endTime time.Time
+	data, err := bitmex.GetBucketed("XBTUSD", "1m", false, "", "", 10, 0, false, startTime, endTime)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", data)
+	for _, v := range data {
+		t.Logf("Timestamp=%v Open=%v High=%v Low=%v Close=%v", v.Timestamp.Local(), v.Open, v.High, v.Low, v.Close)
+	}
 }
 
 func TestBitMEX_GetOrders(t *testing.T) {

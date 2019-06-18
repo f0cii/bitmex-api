@@ -17,7 +17,7 @@ func TestBitMEXConnect(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	b.On(BitmexWSOrderBookL2, func(ob OrderBookDataL2) {
+	b.On(BitmexWSOrderBookL2, func(ob OrderBookDataL2, symbol string) {
 		m := ob.OrderBook()
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", m.Asks[0], m.Bids[0])
 	})
@@ -38,7 +38,8 @@ func TestBitMEXWS(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	b.On(BitmexWSOrderBookL2, func(m OrderBook) {
+	b.On(BitmexWSOrderBookL2, func(ob OrderBookDataL2, symbol string) {
+		m := ob.OrderBook()
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", m.Asks[0], m.Bids[0])
 	})
 

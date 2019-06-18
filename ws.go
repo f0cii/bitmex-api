@@ -108,7 +108,7 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = quotes
-		case BitmexWSQuoteBin1m, BitmexWSQuoteBin5m, BitmexWSQuoteBin1h, BitmexWSQuoteBin1d:
+		case BitmexWSTradeBin1m, BitmexWSTradeBin5m, BitmexWSTradeBin1h, BitmexWSTradeBin1d:
 			var tradeBins []*swagger.TradeBin
 			err = json.Unmarshal([]byte(raw), &tradeBins)
 			if err != nil {
@@ -259,8 +259,8 @@ func (b *BitMEX) StartWS() {
 				b.processOrderbook(&resp)
 			case BitmexWSQuote:
 				b.processQuote(&resp)
-			case BitmexWSQuoteBin1m, BitmexWSQuoteBin5m, BitmexWSQuoteBin1h, BitmexWSQuoteBin1d:
-				b.processQuoteBin(&resp, resp.Table)
+			case BitmexWSTradeBin1m, BitmexWSTradeBin5m, BitmexWSTradeBin1h, BitmexWSTradeBin1d:
+				b.processTradeBin(&resp, resp.Table)
 			case BitmexWSExecution:
 				b.processExecution(&resp)
 			case BitmexWSOrder:
@@ -344,7 +344,7 @@ func (b *BitMEX) processQuote(msg *Response) (err error) {
 	return nil
 }
 
-func (b *BitMEX) processQuoteBin(msg *Response, name string) (err error) {
+func (b *BitMEX) processTradeBin(msg *Response, name string) (err error) {
 	tradeBins, _ := msg.Data.([]*swagger.TradeBin)
 	if len(tradeBins) < 1 {
 		return errors.New("ws.go error - no tradeBin data")

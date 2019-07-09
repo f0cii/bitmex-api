@@ -25,6 +25,10 @@ const (
 	ORD_TYPE_MARKET_WITH_LEFT_OVER_AS_LIMIT = "MarketWithLeftOverAsLimit"
 )
 
+var (
+	NotFound = errors.New("not found")
+)
+
 // {"name":"BitMEX API","version":"1.2.0","timestamp":1554709447283}
 type Version struct {
 	Name      string `json:"name"`
@@ -156,6 +160,24 @@ func (b *BitMEX) GetBucketed(symbol string, binSize string, partial bool, filter
 		return
 	}
 	b.onResponsePublic(response)
+	return
+}
+
+func (b *BitMEX) GetPosition(symbol string) (position swagger.Position, err error) {
+	var positions []swagger.Position
+	positions, err = b.GetPositions(symbol)
+	if err != nil {
+		return
+	}
+	if len(positions) == 0 {
+		err = NotFound
+		return
+	}
+	if len(positions) != 1 {
+		err = errors.New("position error")
+		return
+	}
+	position = positions[0]
 	return
 }
 

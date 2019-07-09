@@ -11,8 +11,8 @@ var (
 	_testnet  bool
 	_key      string
 	_secret   string
-	_key2      string
-	_secret2   string
+	_key2     string
+	_secret2  string
 )
 
 func loadConfig() {

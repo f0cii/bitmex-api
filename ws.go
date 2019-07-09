@@ -308,9 +308,9 @@ func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 
 	symbol := orderbook[0].Symbol
 
-	_, ok := b.snapshotLoaded[symbol]
+	_, ok := b.orderBookLoaded[symbol]
 	if !ok {
-		b.snapshotLoaded[symbol] = false
+		b.orderBookLoaded[symbol] = false
 	}
 
 	_, ok = b.orderBookLocals[symbol]
@@ -320,12 +320,12 @@ func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 
 	switch msg.Action {
 	case bitmexActionInitialData:
-		if !b.snapshotLoaded[symbol] {
+		if !b.orderBookLoaded[symbol] {
 			b.orderBookLocals[symbol].LoadSnapshot(orderbook)
-			b.snapshotLoaded[symbol] = true
+			b.orderBookLoaded[symbol] = true
 		}
 	default:
-		if b.snapshotLoaded[symbol] {
+		if b.orderBookLoaded[symbol] {
 			b.orderBookLocals[symbol].Update(orderbook, msg.Action)
 		}
 	}
@@ -370,7 +370,52 @@ func (b *BitMEX) processOrder(msg *Response) (err error) {
 		return errors.New("ws.go error - no order data")
 	}
 
-	b.emitter.Emit(BitmexWSOrder, orders, msg.Action)
+	switch msg.Action {
+	case bitmexActionInitialData, bitmexActionInsertData:
+		for _, v := range orders {
+			b.orderLocals[v.OrderID] = v
+		}
+	case bitmexActionUpdateData:
+		for _, v := range orders {
+			if old, ok := b.orderLocals[v.OrderID]; ok {
+				if v.Price > 0.0 {
+					old.Price = v.Price
+				}
+				if v.OrderQty > 0 {
+					old.OrderQty = v.OrderQty
+				}
+				if v.OrdStatus != "" {
+					old.OrdStatus = v.OrdStatus
+				}
+				if v.AvgPx > 0 {
+					old.AvgPx = v.AvgPx
+				}
+				if v.CumQty > 0 {
+					old.CumQty = v.CumQty
+				}
+				if v.SimpleCumQty > 0 {
+					old.SimpleCumQty = v.SimpleCumQty
+				}
+				if v.Text != "" {
+					old.Text = v.Text
+				}
+				old.Timestamp = v.Timestamp // 2018-10-12T02:33:18.886Z
+			}
+		}
+	case bitmexActionDeleteData:
+	}
+
+	var result []*swagger.Order
+	for _, v := range orders {
+		order, ok := b.orderLocals[v.OrderID]
+		if ok {
+			newOrder := *order
+			result = append(result, &newOrder)
+		}
+	}
+
+	//b.emitter.Emit(BitmexWSOrder, orders, msg.Action)
+	b.emitter.Emit(BitmexWSOrder, result, msg.Action)
 	return nil
 }
 

@@ -47,8 +47,9 @@ type BitMEX struct {
 	ws              recws.RecConn
 	emitter         *emission.Emitter
 	subscribeCmd    *WSCmd
-	orderBookLocals map[string]*OrderBookLocal
-	snapshotLoaded  map[string]bool // key: symbol
+	orderBookLocals map[string]*OrderBookLocal // key: symbol
+	orderLocals     map[string]*swagger.Order  // key: OrderID
+	orderBookLoaded map[string]bool            // key: symbol
 }
 
 // New allows the use of the public or private and websocket api
@@ -58,7 +59,8 @@ func New(host string, key string, secret string) *BitMEX {
 	b.Secret = secret
 	b.emitter = emission.NewEmitter()
 	b.orderBookLocals = make(map[string]*OrderBookLocal)
-	b.snapshotLoaded = make(map[string]bool)
+	b.orderLocals = make(map[string]*swagger.Order)
+	b.orderBookLoaded = make(map[string]bool)
 	b.ws = recws.RecConn{
 		SubscribeHandler: b.subscribeHandler,
 	}

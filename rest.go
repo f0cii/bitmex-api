@@ -342,8 +342,8 @@ func (b *BitMEX) PlaceOrder(side string, ordType string, stopPx float64, price f
 
 // PlaceOrder 放置委托单
 // execInst: MarkPrice = 标记价格 IndexPrice = 指数价格 LastPrice = 最新成交 ParticipateDoNotInitiate = 被动委托
-func (b *BitMEX) PlaceOrder2(clOrdID string, side string, ordType string, stopPx float64, price float64, orderQty int32,
-	displayQty int32, timeInForce string, execInst string, symbol string, text string) (order swagger.Order, err error) {
+func (b *BitMEX) PlaceOrder2(side string, ordType string, stopPx float64, price float64, orderQty int32,
+	displayQty int32, timeInForce string, execInst string, symbol string, clOrdID string, text string) (order swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}

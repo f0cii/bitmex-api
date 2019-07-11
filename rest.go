@@ -342,12 +342,14 @@ func (b *BitMEX) PlaceOrder(side string, ordType string, stopPx float64, price f
 
 // PlaceOrder 放置委托单
 // execInst: MarkPrice = 标记价格 IndexPrice = 指数价格 LastPrice = 最新成交 ParticipateDoNotInitiate = 被动委托
-func (b *BitMEX) PlaceOrder2(side string, ordType string, stopPx float64, price float64, orderQty int32, displayQty int32, timeInForce string, execInst string, symbol string) (order swagger.Order, err error) {
+func (b *BitMEX) PlaceOrder2(clOrdID string, side string, ordType string, stopPx float64, price float64, orderQty int32, displayQty int32, timeInForce string, execInst string, symbol string) (order swagger.Order, err error) {
 	var response *http.Response
 
 	params := map[string]interface{}{}
+	if clOrdID != "" {
+		params["clOrdID"] = clOrdID // 客户端委托ID
+	}
 	params["symbol"] = symbol
-	// params["clOrdID"] = ""	// 客户端委托ID
 	params["side"] = side
 	params["ordType"] = ordType
 	params["orderQty"] = float32(orderQty)
@@ -389,6 +391,27 @@ func (b *BitMEX) GetOrder(oid string, symbol string) (order swagger.Order, err e
 	params := map[string]interface{}{}
 	params["symbol"] = symbol
 	params["filter"] = fmt.Sprintf(`{"orderID":"%s"}`, oid)
+
+	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
+	if err != nil {
+		return
+	}
+	if len(orders) != 1 {
+		err = errors.New("order error")
+		return
+	}
+	order = orders[0]
+	b.onResponse(response)
+	return
+}
+
+func (b *BitMEX) GetOrderByClOrdID(clOrdID string, symbol string) (order swagger.Order, err error) {
+	var response *http.Response
+	var orders []swagger.Order
+
+	params := map[string]interface{}{}
+	params["symbol"] = symbol
+	params["filter"] = fmt.Sprintf(`{"clOrdID":"%s"}`, clOrdID)
 
 	orders, response, err = b.client.OrderApi.OrderGetOrders(b.ctx, params)
 	if err != nil {

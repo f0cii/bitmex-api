@@ -402,7 +402,7 @@ func (b *BitMEX) GetOrder(oid string, symbol string) (order swagger.Order, err e
 		return
 	}
 	if len(orders) != 1 {
-		err = errors.New("order error")
+		err = NotFound
 		return
 	}
 	order = orders[0]

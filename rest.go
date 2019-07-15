@@ -423,7 +423,7 @@ func (b *BitMEX) GetOrderByClOrdID(clOrdID string, symbol string) (order swagger
 		return
 	}
 	if len(orders) != 1 {
-		err = errors.New("order error")
+		err = NotFound
 		return
 	}
 	order = orders[0]

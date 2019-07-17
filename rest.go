@@ -13,9 +13,11 @@ import (
 )
 
 const (
+	// 委托的方向
 	SIDE_BUY  = "Buy"
 	SIDE_SELL = "Sell"
 
+	// 委托的类型
 	ORD_TYPE_MARKET                         = "Market"          // 市价
 	ORD_TYPE_LIMIT                          = "Limit"           // 限价
 	ORD_TYPE_STOP                           = "Stop"            // 市价止损
@@ -23,6 +25,13 @@ const (
 	ORD_TYPE_MARKET_IF_TOUCHED              = "MarketIfTouched" // 市价止盈
 	ORD_TYPE_LIMIT_IF_TOUCHED               = "LimitIfTouched"  // 限价止盈
 	ORD_TYPE_MARKET_WITH_LEFT_OVER_AS_LIMIT = "MarketWithLeftOverAsLimit"
+
+	// 委托的状态
+	OS_NEW              = "New"
+	OS_PARTIALLY_FILLED = "PartiallyFilled"
+	OS_FILLED           = "Filled"
+	OS_CANCELED         = "Canceled"
+	OS_REJECTED         = "Rejected"
 )
 
 var (

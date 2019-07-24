@@ -350,6 +350,12 @@ func (b *BitMEX) PlaceOrder(side string, ordType string, stopPx float64, price f
 }
 
 // PlaceOrder 放置委托单
+// side: Buy/Sell
+// ordType: = Limit/Stop/StopLimit/MarketIfTouched/LimitIfTouched/MarketWithLeftOverAsLimit
+// stopPx: 止损止盈触发价
+// price: 委托价
+// orderQty: 委托数量
+// displayQty: 默认传: -1
 // execInst: MarkPrice = 标记价格 IndexPrice = 指数价格 LastPrice = 最新成交 ParticipateDoNotInitiate = 被动委托
 func (b *BitMEX) PlaceOrder2(side string, ordType string, stopPx float64, price float64, orderQty int32,
 	displayQty int32, timeInForce string, execInst string, symbol string, clOrdID string, text string) (order swagger.Order, err error) {
@@ -364,7 +370,7 @@ func (b *BitMEX) PlaceOrder2(side string, ordType string, stopPx float64, price 
 	params["ordType"] = ordType
 	params["orderQty"] = float32(orderQty)
 	if displayQty >= 0 {
-		params["displayQty"] = displayQty
+		params["displayQty"] = float32(displayQty)
 	}
 	if stopPx > 0.0 {
 		params["stopPx"] = stopPx

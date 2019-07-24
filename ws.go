@@ -228,8 +228,24 @@ func (b *BitMEX) StartWS() {
 	b.ws.Dial(bitmexWSURL, nil)
 
 	go func() {
+		t := time.NewTicker(time.Second * 5)
+		defer t.Stop()
 		for {
-			_, message, err := b.ws.ReadMessage()
+			select {
+			case <-t.C:
+				err := b.ws.WriteMessage(websocket.TextMessage, []byte("ping"))
+				if err != nil {
+					// The connection has disconnected if ping errors
+					// and everything will automatically tear down.
+					log.Printf("%v", err)
+				}
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			messageType, message, err := b.ws.ReadMessage()
 			if err != nil {
 				if b.ws.IsClosed() {
 					log.Println("StartWS done")
@@ -238,6 +254,11 @@ func (b *BitMEX) StartWS() {
 				time.Sleep(500 * time.Millisecond)
 				log.Println("read:", err)
 				continue
+			}
+			if messageType == websocket.TextMessage {
+				if string(message) == "pong" {
+					continue
+				}
 			}
 			resp, err := decodeMessage(message)
 			if err != nil {

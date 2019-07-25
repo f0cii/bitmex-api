@@ -12,7 +12,6 @@ package swagger
 
 import (
 	"encoding/json"
-	"fmt"
 	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
@@ -197,7 +196,8 @@ func (a *OrderApiService) OrderAmend(ctx context.Context, localVarOptionals map[
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
-		return successPayload, localVarHttpResponse, reportError(localVarHttpResponse.Status)
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("%v Text=%v", localVarHttpResponse.Status, string(bodyBytes))
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
@@ -1120,8 +1120,7 @@ func (a *OrderApiService) OrderNew(ctx context.Context, symbol string, localVarO
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		fmt.Printf("%s\n", string(bodyBytes))
-		return successPayload, localVarHttpResponse, reportError(localVarHttpResponse.Status)
+		return successPayload, localVarHttpResponse, reportError("%v Text=%v", localVarHttpResponse.Status, string(bodyBytes))
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {

@@ -420,6 +420,9 @@ func (b *BitMEX) processOrder(msg *Response) (err error) {
 				if v.Text != "" {
 					old.Text = v.Text
 				}
+				if v.Side != "" {
+					old.Side = v.Side
+				}
 				old.Timestamp = v.Timestamp // 2018-10-12T02:33:18.886Z
 			}
 		}

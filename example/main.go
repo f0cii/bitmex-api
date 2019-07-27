@@ -13,7 +13,7 @@ func main() {
 		{Op: bitmex.BitmexWSOrderBookL2, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSOrder, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSPosition, Param: "XBTUSD"},
-		{Op: bitmex.BitmexWSWallet, Param: "XBTUSD"},
+		{Op: bitmex.BitmexWSMargin, Param: "XBTUSD"},
 	}
 	err := b.Subscribe(subscribeInfos)
 	if err != nil {
@@ -25,16 +25,26 @@ func main() {
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", ob.Asks[0], ob.Bids[0])
 	}).On(bitmex.BitmexWSOrder, func(m []*swagger.Order, action string) {
 		fmt.Printf("Order action=%v orders=%#v\n", action, m)
-		//for _, v := range m {
-		//	fmt.Printf("Order=%#v %v\n", *v, (*v).Timestamp.String())
-		//}
 	}).On(bitmex.BitmexWSPosition, func(m []*swagger.Position, action string) {
 		fmt.Printf("Position action=%v positions=%#v\n", action, m)
-	}).On(bitmex.BitmexWSWallet, func(m []*swagger.Wallet, action string) {
-		fmt.Printf("Wallet action=%v wallets=%#v\n", action, m)
+	}).On(bitmex.BitmexWSMargin, func(m []*swagger.Margin, action string) {
+		fmt.Printf("Wallet action=%v margins=%#v\n", action, m)
 	})
 
 	b.StartWS()
 
-	select {}
+	// Get orderbook by rest api
+	b.GetOrderBook(10, "XBTUSD")
+	// Place a limit buy order
+	b.PlaceOrder(bitmex.SIDE_BUY, bitmex.ORD_TYPE_LIMIT, 0, 6000.0, 1000, "", "", "XBTUSD")
+	b.GetOrders("XBTUSD")
+	b.GetOrder("{OrderID}", "XBTUSD")
+	b.AmendOrder("{OrderID}", 6000.5)
+	b.CancelOrder("{OrderID}")
+	b.CancelAllOrders("XBTUSD")
+	b.GetPosition("XBTUSD")
+	b.GetMargin()
+
+	forever := make(chan bool)
+	<-forever
 }

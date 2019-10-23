@@ -922,7 +922,13 @@ func (a *OrderApiService) OrderGetOrders(ctx context.Context, localVarOptionals 
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
-		return successPayload, localVarHttpResponse, reportError(localVarHttpResponse.Status)
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		localVarOptionalsJson, _ := json.Marshal(localVarOptionals)
+		return successPayload, localVarHttpResponse, reportError("%v localVarOptionalsJson=%v Text=%v",
+			localVarHttpResponse.Status,
+			string(localVarOptionalsJson),
+			string(bodyBytes),
+			)
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
@@ -1120,7 +1126,12 @@ func (a *OrderApiService) OrderNew(ctx context.Context, symbol string, localVarO
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("%v Text=%v", localVarHttpResponse.Status, string(bodyBytes))
+		localVarOptionalsJson, _ := json.Marshal(localVarOptionals)
+		return successPayload, localVarHttpResponse, reportError("%v localVarOptionals=%v Text=%v",
+			localVarHttpResponse.Status,
+			string(localVarOptionalsJson),
+			string(bodyBytes),
+			)
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {

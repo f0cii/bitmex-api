@@ -1,8 +1,8 @@
 package bitmex
 
 import (
-	"github.com/micro/go-config"
-	"github.com/micro/go-config/source/file"
+	"github.com/micro/go-micro/config"
+	"github.com/micro/go-micro/config/source/file"
 	"testing"
 )
 

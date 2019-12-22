@@ -3,14 +3,14 @@ package bitmex
 import (
 	"context"
 	"github.com/chuckpreslar/emission"
-	"github.com/sumorf/bitmex-api/recws"
+	"github.com/frankrap/bitmex-api/recws"
 	"golang.org/x/net/proxy"
 	"log"
 	"net"
 	"time"
 
 	//"github.com/mariuspass/recws"
-	"github.com/sumorf/bitmex-api/swagger"
+	"github.com/frankrap/bitmex-api/swagger"
 	"net/http"
 	"net/url"
 	"sync"

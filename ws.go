@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
-	"github.com/sumorf/bitmex-api/swagger"
+	"github.com/frankrap/bitmex-api/swagger"
 	"github.com/tidwall/gjson"
 	"log"
 	"net/url"

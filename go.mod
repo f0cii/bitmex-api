@@ -1,9 +1,10 @@
-module github.com/sumorf/bitmex-api
+module github.com/frankrap/bitmex-api
 
 require (
 	github.com/DataDog/zstd v1.4.0 // indirect
 	github.com/Shopify/sarama v1.22.0 // indirect
 	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9
+	github.com/frankrap/goalgo v0.0.0-20191222082958-86150f79a9c1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20190404155422-f8f10df84213 // indirect
 	github.com/gorilla/websocket v1.4.1
@@ -17,7 +18,6 @@ require (
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/sumorf/goalgo v0.0.0-20190419095323-731db66cac6e // indirect
 	github.com/tidwall/gjson v1.2.1
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect

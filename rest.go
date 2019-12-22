@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sumorf/bitmex-api/swagger"
+	"github.com/frankrap/bitmex-api/swagger"
 	"io/ioutil"
 	"net/http"
 	"sort"

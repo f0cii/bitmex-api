@@ -8,8 +8,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/sumorf/bitmex-api"
-	"github.com/sumorf/bitmex-api/swagger"
+	"github.com/frankrap/bitmex-api"
+	"github.com/frankrap/bitmex-api/swagger"
 	"log"
 )
 

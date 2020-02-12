@@ -115,6 +115,13 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = tradeBins
+		case BitmexWSTrade:
+			var trades []*swagger.Trade
+			err = json.Unmarshal([]byte(raw), &trades)
+			if err != nil {
+				return res, err
+			}
+			res.Data = trades
 		case BitmexWSExecution:
 			var executions []*swagger.Execution
 			err = json.Unmarshal([]byte(raw), &executions)
@@ -282,6 +289,8 @@ func (b *BitMEX) StartWS() {
 				b.processQuote(&resp)
 			case BitmexWSTradeBin1m, BitmexWSTradeBin5m, BitmexWSTradeBin1h, BitmexWSTradeBin1d:
 				b.processTradeBin(&resp, resp.Table)
+			case BitmexWSTrade:
+				b.processTrade(&resp)
 			case BitmexWSExecution:
 				b.processExecution(&resp)
 			case BitmexWSOrder:
@@ -372,6 +381,15 @@ func (b *BitMEX) processTradeBin(msg *Response, name string) (err error) {
 	}
 
 	b.emitter.Emit(name, tradeBins, msg.Action)
+	return nil
+}
+
+func (b *BitMEX) processTrade(msg *Response) (err error) {
+	trades, _ := msg.Data.([]*swagger.Trade)
+	if len(trades) < 1 {
+		return errors.New("ws.go error - no trade data")
+	}
+	b.emitter.Emit(BitmexWSTrade, trades, msg.Action)
 	return nil
 }
 

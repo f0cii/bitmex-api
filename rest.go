@@ -574,6 +574,21 @@ func (b *BitMEX) CloseOrder(side string, ordType string, price float64, orderQty
 	return
 }
 
+func (b *BitMEX) GetInstrument(symbol string, count int, reverse bool) (result []swagger.Instrument, err error) {
+	var response *http.Response
+
+	params := map[string]interface{}{}
+	params["symbol"] = symbol
+	params["count"] = float32(count)
+	params["reverse"] = reverse
+	result, response, err = b.client.InstrumentApi.InstrumentGet(params)
+	if err != nil {
+		return
+	}
+	b.onResponse(response)
+	return
+}
+
 func (b *BitMEX) RequestWithdrawal(currency string, amount float32, address string, otpToken string, fee float64) (trans swagger.Transaction, err error) {
 	var response *http.Response
 	params := map[string]interface{}{}

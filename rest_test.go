@@ -212,3 +212,14 @@ func TestBitMEX_RequestWithdrawal(t *testing.T) {
 	}
 	t.Logf("%#v", trans)
 }
+
+func TestBitMEX_GetInstrument(t *testing.T) {
+	bitmex := newBitmexForTest()
+	i, err := bitmex.GetInstrument("XBTUSD", 1, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", i)
+	t.Logf("FundingRate: %v", i[0].FundingRate)
+}

@@ -9,7 +9,7 @@ import (
 	"net"
 	"time"
 
-	//"github.com/mariuspass/recws"
+	//"github.com/recws-org/recws"
 	"github.com/frankrap/bitmex-api/swagger"
 	"net/http"
 	"net/url"

@@ -29,10 +29,11 @@ type RateLimit struct {
 
 // BitMEX describes the API
 type BitMEX struct {
-	Key      string
-	Secret   string
-	host     string
-	proxyURL string
+	Key       string
+	Secret    string
+	host      string
+	proxyURL  string
+	debugMode bool
 
 	ctx                  context.Context
 	timeout              time.Duration
@@ -53,10 +54,11 @@ type BitMEX struct {
 }
 
 // New allows the use of the public or private and websocket api
-func New(host string, key string, secret string) *BitMEX {
+func New(httpClient *http.Client, host string, key string, secret string, debugMode bool) *BitMEX {
 	b := &BitMEX{}
 	b.Key = key
 	b.Secret = secret
+	b.debugMode = debugMode
 	b.emitter = emission.NewEmitter()
 	b.orderBookLocals = make(map[string]*OrderBookLocal)
 	b.orderLocals = make(map[string]*swagger.Order)
@@ -68,10 +70,13 @@ func New(host string, key string, secret string) *BitMEX {
 	b.ctx = MakeContext(key, secret, host, 10)
 	b.timeout = 10 * time.Second
 	b.cfg = GetConfiguration(b.ctx)
-	b.httpClient = &http.Client{
-		Timeout: b.timeout,
+	if httpClient == nil {
+		httpClient = &http.Client{
+			Timeout: b.timeout,
+		}
 	}
-	b.cfg.HTTPClient = b.httpClient
+	b.httpClient = httpClient
+	b.cfg.HTTPClient = httpClient
 	b.client = swagger.NewAPIClient(b.cfg)
 	return b
 }

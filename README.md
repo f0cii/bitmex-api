@@ -14,7 +14,8 @@ import (
 )
 
 func main() {
-	b := bitmex.New(bitmex.HostTestnet, "8K2Oi0bnRRZ7GK4UJnY-38oj", "9EmGvk8mKX5nWa11y1KyPPGn78Lv2ZEiLx3TH0YasE_oE06y")
+    b := bitmex.New(nil,
+        bitmex.HostTestnet, "8K2Oi0bnRRZ7GK4UJnY-38oj", "9EmGvk8mKX5nWa11y1KyPPGn78Lv2ZEiLx3TH0YasE_oE06y", true)
 	subscribeInfos := []bitmex.SubscribeInfo{
 		{Op: bitmex.BitmexWSOrderBookL2, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSOrder, Param: "XBTUSD"},

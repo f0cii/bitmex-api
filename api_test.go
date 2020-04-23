@@ -60,7 +60,7 @@ func newBitmexForTest() *BitMEX {
 	} else {
 		host = HostReal
 	}
-	bitmex := New(host, _key, _secret)
+	bitmex := New(nil, host, _key, _secret, true)
 	if _proxyURL != "" {
 		bitmex.SetHttpProxy(_proxyURL)
 	}
@@ -75,7 +75,7 @@ func newBitmexForTest2() *BitMEX {
 	} else {
 		host = HostReal
 	}
-	bitmex := New(host, _key2, _secret2)
+	bitmex := New(nil, host, _key2, _secret2, true)
 	if _proxyURL != "" {
 		bitmex.SetHttpProxy(_proxyURL)
 	}

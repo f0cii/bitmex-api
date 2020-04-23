@@ -928,7 +928,7 @@ func (a *OrderApiService) OrderGetOrders(ctx context.Context, localVarOptionals 
 			localVarHttpResponse.Status,
 			string(localVarOptionalsJson),
 			string(bodyBytes),
-			)
+		)
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
@@ -1131,7 +1131,7 @@ func (a *OrderApiService) OrderNew(ctx context.Context, symbol string, localVarO
 			localVarHttpResponse.Status,
 			string(localVarOptionalsJson),
 			string(bodyBytes),
-			)
+		)
 	}
 
 	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {

@@ -12,6 +12,7 @@ func main() {
 		bitmex.HostTestnet, "8K2Oi0bnRRZ7GK4UJnY-38oj", "9EmGvk8mKX5nWa11y1KyPPGn78Lv2ZEiLx3TH0YasE_oE06y", true)
 	subscribeInfos := []bitmex.SubscribeInfo{
 		{Op: bitmex.BitmexWSOrderBookL2, Param: "XBTUSD"},
+		{Op: bitmex.BitmexWSTrade, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSOrder, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSPosition, Param: "XBTUSD"},
 		{Op: bitmex.BitmexWSMargin, Param: "XBTUSD"},
@@ -24,6 +25,8 @@ func main() {
 	b.On(bitmex.BitmexWSOrderBookL2, func(m bitmex.OrderBookDataL2, symbol string) {
 		ob := m.OrderBook()
 		fmt.Printf("\rOrderbook Asks: %#v Bids: %#v                            ", ob.Asks[0], ob.Bids[0])
+	}).On(bitmex.BitmexWSTrade, func(trades []*swagger.Trade, action string) {
+		fmt.Printf("Trades %#v action=%v", trades, action)
 	}).On(bitmex.BitmexWSOrder, func(m []*swagger.Order, action string) {
 		fmt.Printf("Order action=%v orders=%#v\n", action, m)
 	}).On(bitmex.BitmexWSPosition, func(m []*swagger.Position, action string) {

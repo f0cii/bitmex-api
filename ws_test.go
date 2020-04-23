@@ -6,9 +6,14 @@ import (
 	"testing"
 )
 
+func testBitMeX() *BitMEX {
+	b := New(nil, HostTestnet, "", "", true)
+	// b.SetHttpProxy("http://127.0.0.1:1080")
+	return b
+}
+
 func TestBitMEXConnect(t *testing.T) {
-	b := New(HostTestnet, "", "")
-	b.SetHttpProxy("http://127.0.0.1:1080")
+	b := testBitMeX()
 	subscribeInfos := []SubscribeInfo{
 		{Op: BitmexWSOrderBookL2, Param: "XBTUSD"},
 	}
@@ -28,8 +33,7 @@ func TestBitMEXConnect(t *testing.T) {
 }
 
 func TestBitMEXWS(t *testing.T) {
-	b := New(HostTestnet, "", "")
-	b.SetHttpProxy("http://127.0.0.1:1080")
+	b := testBitMeX()
 	subscribeInfos := []SubscribeInfo{
 		{Op: BitmexWSOrderBookL2, Param: "XBTUSD"},
 	}

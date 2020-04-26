@@ -274,7 +274,9 @@ func (b *BitMEX) StartWS() {
 			}
 
 			if resp.Success {
-				log.Println(string(message))
+				if b.debugMode {
+					log.Println(string(message))
+				}
 				continue
 			}
 
@@ -303,10 +305,14 @@ func (b *BitMEX) StartWS() {
 				b.processWallet(&resp)
 			default:
 				if resp.Subscribe != "" {
-					log.Printf("Subscribe message Msg=%#v", resp)
+					if b.debugMode {
+						log.Printf("Subscribe message Msg=%#v", resp)
+					}
 				} else {
-					log.Printf("Unknown message Msg=%#v", resp)
-					log.Println("resp:", string(message))
+					if b.debugMode {
+						log.Printf("Unknown message Msg=%#v", resp)
+						log.Println("resp:", string(message))
+					}
 				}
 			}
 

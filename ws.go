@@ -101,6 +101,13 @@ func decodeMessage(message []byte) (Response, error) {
 				return res, err
 			}
 			res.Data = orderbooks
+		case BitmexWSOrderBookL2_25:
+			var orderbooks OrderBookData
+			err = json.Unmarshal([]byte(raw), &orderbooks)
+			if err != nil {
+				return res, err
+			}
+			res.Data = orderbooks
 		case BitmexWSQuote:
 			var quotes []*swagger.Quote
 			err = json.Unmarshal([]byte(raw), &quotes)
@@ -284,7 +291,7 @@ func (b *BitMEX) StartWS() {
 			case BitmexWSInstrument:
 				b.processInstrument(&resp)
 			case BitmexWSOrderBookL2_25:
-				b.processOrderbook(&resp)
+				b.processOrderbook25(&resp)
 			case BitmexWSOrderBookL2:
 				b.processOrderbook(&resp)
 			case BitmexWSQuote:
@@ -367,8 +374,42 @@ func (b *BitMEX) processOrderbook(msg *Response) (err error) {
 	}
 
 	ob := b.orderBookLocals[symbol].GetOrderbookL2()
-	b.emitter.Emit(BitmexWSOrderBookL2_25, ob, symbol)
 	b.emitter.Emit(BitmexWSOrderBookL2, ob, symbol)
+	return nil
+}
+
+func (b *BitMEX) processOrderbook25(msg *Response) (err error) {
+	orderbook, _ := msg.Data.(OrderBookData)
+	if len(orderbook) < 1 {
+		return errors.New("ws.go error - no orderbook data")
+	}
+
+	symbol := orderbook[0].Symbol
+
+	_, ok := b.orderBookLoaded[symbol]
+	if !ok {
+		b.orderBookLoaded[symbol] = false
+	}
+
+	_, ok = b.orderBookLocals[symbol]
+	if !ok {
+		b.orderBookLocals[symbol] = NewOrderBookLocal()
+	}
+
+	switch msg.Action {
+	case bitmexActionInitialData:
+		if !b.orderBookLoaded[symbol] {
+			b.orderBookLocals[symbol].LoadSnapshot(orderbook)
+			b.orderBookLoaded[symbol] = true
+		}
+	default:
+		if b.orderBookLoaded[symbol] {
+			b.orderBookLocals[symbol].Update(orderbook, msg.Action)
+		}
+	}
+
+	ob := b.orderBookLocals[symbol].GetOrderbookL2()
+	b.emitter.Emit(BitmexWSOrderBookL2_25, ob, symbol)
 	return nil
 }
 

@@ -475,6 +475,9 @@ func (b *BitMEX) processOrder(msg *Response) (err error) {
 				if v.OrdStatus != "" {
 					old.OrdStatus = v.OrdStatus
 				}
+				if v.StopPx > 0 {
+					old.StopPx = v.StopPx
+				}
 				if v.AvgPx > 0 {
 					old.AvgPx = v.AvgPx
 				}
